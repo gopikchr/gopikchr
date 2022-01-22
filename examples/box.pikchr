@@ -1,0 +1,3 @@
+box color red wid 2.6in \
+    "Click on any diagram on this page" big \
+    "to see the Pikchr source text" big
