@@ -1,0 +1,13 @@
+# emacs stuff
+*~
+\#*\#
+auto-save-list
+.\#*
+
+# binaries
+cmd/gopikchr/gopikchr
+c/pikchr
+gopikchr
+
+# testing
+output/
