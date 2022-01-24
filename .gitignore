@@ -5,9 +5,9 @@ auto-save-list
 .\#*
 
 # binaries
-cmd/gopikchr/gopikchr
+/cmd/gopikchr/gopikchr
 c/pikchr
-gopikchr
+/gopikchr
 
 # artifacts of generating
 c/pikchr.out
