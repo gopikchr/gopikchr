@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo 'Generating C'
-(cd c; ../../gopikchr-working/bin/lemonc pikchr.y)
+# echo 'Generating C'
+# (cd c; ../../gopikchr-working/bin/lemonc pikchr.y)
 
-echo 'Generating Go'
-(cd impl; ../../gopikchr-working/bin/lemongo pikchr.y)
+# echo 'Generating Go'
+# (cd impl; ../../gopikchr-working/bin/lemongo pikchr.y)
 
 echo 'Building C'
 gcc -DPIKCHR_SHELL=1 -o c/pikchr c/pikchr.c
@@ -39,29 +39,5 @@ test_all_in_dir () {
     done
 }
 
-test_all_in_dir still-broken
-# test_all_in_dir examples
-# test_all_in_dir tests
-# test_all_in_dir fuzzcases
-
-# FILES=$(cd examples; ls *.pic)
-
-# for file in $FILES
-# do
-#     name=${file%.pic}
-#     echo "C pikchr: $name.pic"
-#     bin/pikchr-c examples/$name.pic > examples/$name-c.html
-#     echo "Go pikchr: $name.pic"
-#     bin/pikchr-go examples/$name.pic > examples/$name-go.html || true
-#     echo "Diffing output for $name.pic"
-#     diff examples/$name-c.html examples/$name-go.html
-# done
-
-# echo 'Diffing output for test.pic'
-# diff svg/test-c.html svg/test-go.html
-#
-# echo 'Diffing output for syntax.pic'
-# diff svg/syntax-c.html svg/syntax-go.html
-#
-# echo 'Diffing output for architecture.pic'
-# diff svg/architecture-c.html svg/architecture-go.html
+test_all_in_dir examples
+test_all_in_dir tests

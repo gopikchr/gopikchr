@@ -14,21 +14,22 @@ pikchr cleanly in Go, and on my blog, using
 Perhaps it's just having to constantly make trade-offs and value
 expediency at work that leaves us with an irrational, curmudgeony
 desire to dive all the way down the yak-shaving stack, and **do things
-right, dammit!**
+right, dammit!**. Consider `gopikchr` a
+[gift](https://apenwarr.ca/log/20211229).
 
 ## State
 
-There are bugs.
+There are probably bugs.
 
 Things work well enough to properly convert files in `examples/`, and
-I'm working my way through `tests/`, fixing errors.
+`tests/`, but I'm sure there are still bugs lurking.
 
 Everything is currently in `impl/` and `cmd/pikchr`; it remains to add
 a clean Go interface in this root directory.
 
 Pull requests are welcome: I currently intend no support for this
 project, but if you're obscure enough to want a Go port of pikchr,
-then we share a strange kind of kinship, and I welcome your
+then we share some strange kind of kinship, and I welcome your
 contributions.
 
 ## Goals
@@ -52,10 +53,9 @@ left alone as much as possible.
 # TODOs
 
 - [ ] Add a clean Go interface in the root directory
-- [ ] Get all the files in `tests/` working
-- [ ] Set up fuzzing
 - [ ] Create a github action that follows the rss feed for changes to
       `pikchr.y` and creates issues.
+- [ ] (Maybe) Set up fuzzing
 
 ## Contributors
 
