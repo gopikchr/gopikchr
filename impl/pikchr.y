@@ -2338,7 +2338,9 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
         j++
       }
       nz -= j+1
-      z = z[j+1:]
+			if nz>0 {
+				z = z[j+1:]
+			}
     }
     p.pik_append("</text>\n")
   }
@@ -3536,7 +3538,7 @@ func pik_round(v PNum) int {
   case v >= 2147483647:
 		return 2147483647
 	default:
-		return int(v+math.Copysign(1e-7,v))
+		return int(v+math.Copysign(1e-15,v))
 	}
 }
 
