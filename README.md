@@ -24,7 +24,7 @@ There are probably bugs.
 Things work well enough to properly convert files in `examples/`, and
 `tests/`, but I'm sure there are still bugs lurking.
 
-Everything is currently in `impl/` and `cmd/pikchr`; it remains to add
+Everything is currently in `internal/` and `cmd/pikchr`; it remains to add
 a clean Go interface in this root directory.
 
 Pull requests are welcome: I currently intend no support for this

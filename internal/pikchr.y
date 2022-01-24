@@ -116,7 +116,7 @@
 ** name when referenced by subsequent objects.
 */
 
-package impl
+package internal
 
 import (
 	"bytes"
