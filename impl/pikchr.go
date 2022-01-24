@@ -5755,8 +5755,11 @@ func pik_find_class(pId *PToken) *PClass {
 ** are NULL then this is a no-op object used to define a PLACENAME.
  */
 func (p *Pik) pik_elem_new(pId *PToken, pStr *PToken, pSublist PList) *PObj {
-	pNew := &PObj{}
 	miss := false
+	if p.nErr != 0 {
+		return nil
+	}
+	pNew := &PObj{}
 
 	p.cur = pNew
 	p.nTPath = 1
@@ -6960,7 +6963,7 @@ func (p *Pik) pik_same(pOther *PObj, pErrTok *PToken) {
 		}
 		p.nTPath = pOther.nPath
 		p.mTPath = 3
-		p.samePath = false
+		p.samePath = true
 	}
 	if !pObj.typ.isLine {
 		pObj.w = pOther.w
@@ -7121,6 +7124,11 @@ func (p *Pik) pik_func(pFunc *PToken, x PNum, y PNum) PNum {
 			v = math.Sqrt(x)
 		}
 	case FN_MAX:
+		if x > y {
+			v = x
+		} else {
+			v = y
+		}
 	case FN_MIN:
 		if x < y {
 			v = x
@@ -8436,4 +8444,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7697 "pikchr.go"
+//line 7700 "pikchr.go"

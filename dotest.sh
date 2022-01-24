@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# echo 'Building lemonc'
-# gcc -o ./bin/lemonc golemon/lemon.c
+echo 'Generating C'
+(cd c; ../../gopikchr-working/bin/lemonc pikchr.y)
 
-# echo 'Building lemongo'
-# go build -o ./bin/lemongo ./golemon/lemon.go
-
-# echo 'Generating C'
-# (cd golemon; ../bin/lemonc pikchr.y)
-
-# echo 'Generating Go'
-# bin/lemongo pikchr.y
+echo 'Generating Go'
+(cd impl; ../../gopikchr-working/bin/lemongo pikchr.y)
 
 echo 'Building C'
 gcc -DPIKCHR_SHELL=1 -o c/pikchr c/pikchr.c
@@ -37,16 +31,17 @@ test_all_in_dir () {
         echo " $file"
         name=${file%.pikchr}
         echo " - C pikchr: $name.pikchr"
-        ./c/pikchr $1/$name.pikchr > output/$name-c.html
+        ./c/pikchr $1/$name.pikchr > output/$name-c.html || echo 'ERROR!'
         echo " - Go pikchr: $name.pikchr"
-        ./gopikchr $1/$name.pikchr > output/$name-go.html
+        ./gopikchr $1/$name.pikchr > output/$name-go.html || echo 'ERROR!'
         echo " - Diffing output for $name.pikchr"
         diff output/$name-c.html output/$name-go.html
     done
 }
 
-test_all_in_dir examples
-test_all_in_dir tests
+test_all_in_dir still-broken
+# test_all_in_dir examples
+# test_all_in_dir tests
 # test_all_in_dir fuzzcases
 
 # FILES=$(cd examples; ls *.pic)

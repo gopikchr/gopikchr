@@ -9,5 +9,10 @@ cmd/gopikchr/gopikchr
 c/pikchr
 gopikchr
 
+# artifacts of generating
+c/pikchr.out
+impl/pikchr.out
+
 # testing
 output/
+still-broken
