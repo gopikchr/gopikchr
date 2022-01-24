@@ -5,7 +5,7 @@ set -euo pipefail
 # (cd c; ../../gopikchr-working/bin/lemonc pikchr.y)
 
 # echo 'Generating Go'
-# (cd impl; ../../gopikchr-working/bin/lemongo pikchr.y)
+# (cd internal; ../../gopikchr-working/bin/lemongo pikchr.y)
 
 echo 'Building C'
 gcc -DPIKCHR_SHELL=1 -o c/pikchr c/pikchr.c

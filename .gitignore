@@ -11,7 +11,7 @@ gopikchr
 
 # artifacts of generating
 c/pikchr.out
-impl/pikchr.out
+internal/pikchr.out
 
 # testing
 output/
