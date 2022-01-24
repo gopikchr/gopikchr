@@ -2662,15 +2662,18 @@ func pik_find_class(pId *PToken) *PClass {
 ** are NULL then this is a no-op object used to define a PLACENAME.
 */
 func (p *Pik) pik_elem_new(pId *PToken, pStr *PToken,pSublist PList) *PObj {
-	pNew := &PObj{}
   miss := false
+	if p.nErr != 0 {
+		return nil
+	}
+  pNew := &PObj{}
 
   p.cur = pNew
-	p.nTPath = 1
+  p.nTPath = 1
   p.thenFlag = false
   if len(p.list) == 0 {
     pNew.ptAt.x = 0.0
-		pNew.ptAt.y = 0.0
+    pNew.ptAt.y = 0.0
     pNew.eWith = CP_C
   } else {
     pPrior := p.list[len(p.list)-1]
@@ -3775,7 +3778,7 @@ func (p *Pik) pik_same(pOther *PObj, pErrTok *PToken) {
     }
 		p.nTPath = pOther.nPath
     p.mTPath = 3
-    p.samePath = false
+    p.samePath = true
   }
   if !pObj.typ.isLine {
     pObj.w = pOther.w
@@ -3899,20 +3902,20 @@ func pik_property_of(pObj *PObj, pProp *PToken) PNum {
 func (p *Pik) pik_func(pFunc *PToken, x PNum, y PNum) PNum {
   var v PNum
   switch pFunc.eCode {
-    case FN_ABS:  v = x; if v < 0 { v = -v }
-    case FN_COS:  v = math.Cos(x)
-    case FN_INT:  v = math.Round(x)
-    case FN_SIN:  v = math.Sin(x)
-    case FN_SQRT:
-      if x<0.0 {
-        p.pik_error(pFunc, "sqrt of negative value")
-        v = 0.0
-      }else{
-        v = math.Sqrt(x)
-      }
-    case FN_MAX:
-    case FN_MIN:  if x<y { v=x } else { v=y }
-    default:      v = 0.0
+	case FN_ABS:  v = x; if v < 0 { v = -v }
+	case FN_COS:  v = math.Cos(x)
+	case FN_INT:  v = math.Round(x)
+	case FN_SIN:  v = math.Sin(x)
+	case FN_SQRT:
+		if x<0.0 {
+			p.pik_error(pFunc, "sqrt of negative value")
+			v = 0.0
+		}else{
+			v = math.Sqrt(x)
+		}
+	case FN_MAX:  if x>y { v=x } else { v=y }
+	case FN_MIN:  if x<y { v=x } else { v=y }
+	default:      v = 0.0
   }
   return v
 }
