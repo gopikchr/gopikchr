@@ -4012,7 +4012,7 @@ func circleNumProp(p *Pik, pObj *PObj, pId *PToken) {
 	/* For a circle, the width must equal the height and both must
 	 ** be twice the radius.  Enforce those constraints. */
 	switch pId.eType {
-	case T_RADIUS:
+	case T_DIAMETER, T_RADIUS:
 		pObj.w = 2.0 * pObj.rad
 		pObj.h = 2.0 * pObj.rad
 	case T_WIDTH:
