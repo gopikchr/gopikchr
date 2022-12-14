@@ -3904,9 +3904,9 @@ func pik_property_of(pObj *PObj, pProp *PToken) PNum {
 func (p *Pik) pik_func(pFunc *PToken, x PNum, y PNum) PNum {
   var v PNum
   switch pFunc.eCode {
-	case FN_ABS:  v = x; if v < 0 { v = -v }
+	case FN_ABS:  v = x; if v < 0 { v = -x }
 	case FN_COS:  v = math.Cos(x)
-	case FN_INT:  v = math.Round(x)
+	case FN_INT:  v = math.Trunc(x)
 	case FN_SIN:  v = math.Sin(x)
 	case FN_SQRT:
 		if x<0.0 {
