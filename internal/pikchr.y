@@ -147,6 +147,8 @@ const (
   CP_START /* .start */
 )
 
+const PIKCHR_TOKEN_LIMIT = 100000
+
 /* Heading angles corresponding to compass points */
 var pik_hdg_angle = []PNum{
 /* none  */   0.0,
@@ -364,6 +366,7 @@ type PMacro struct {
 */
 type Pik struct {
   nErr int                 /* Number of errors seen */
+  nToken uint              /* Number of tokens parsed */
   sIn PToken               /* Input Pikchr-language text */
   zOut bytes.Buffer        /* Result accumulates here */
   nOut uint                /* Bytes written to zOut[] so far */
@@ -4992,6 +4995,10 @@ func (p *Pik) pik_tokenize(pIn *PToken, pParser *yyParser, aParam []PToken) {
 				yyTokenName[token.eType], token.eType, string(token.z[:n]))
 		} // #endif
 		token.n = sz
+		if p.nToken++; p.nToken > PIKCHR_TOKEN_LIMIT {
+			p.pik_error(&token, "script is too complex")
+			break;
+		}
 		pParser.pik_parser(token.eType, token)
   }
 }
