@@ -1865,16 +1865,18 @@ func (p *Pik) pik_append(zText string){
   p.zOut.WriteString(zText)
 }
 
-var ampersand_entity_re = regexp.MustCompile(`^&(?:#[0-9]{2,}|[a-zA-Z]{2,});`)
+var ampersand_entity_re = regexp.MustCompile(`^&(?:#[0-9]{2,}|[a-zA-Z][a-zA-Z0-9]+);`)
 
 /*
 ** Given a string, returns true if the string begins
 ** with a construct which syntactically matches an HTML entity escape
 ** sequence (without checking for whether it's a known entity). Always
 ** returns false if zText[0] is false or n<4. Entities match the
-** equivalent of the regexes `&#[0-9]{2,};` and `&[a-zA-Z]{2,};`.
+** equivalent of the regexes `&#[0-9]{2,};` and
+** `&[a-zA-Z][a-zA-Z0-9]+;`.
 */
 func pik_isentity(zText string) bool {
+	/* Note that &#nn; values nn<32d are not legal entities. */
 	return ampersand_entity_re.MatchString(zText)
 }
 
