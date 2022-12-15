@@ -126,6 +126,15 @@
 # define M_PI 3.1415926535897932385
 #endif
 
+/* Limit the number of tokens in a single script to avoid run-away
+** macro expansion attacks.  See forum post
+**    https://pikchr.org/home/forumpost/ef8684c6955a411a
+*/
+#ifndef PIKCHR_TOKEN_LIMIT
+# define PIKCHR_TOKEN_LIMIT 100000
+#endif
+
+
 /* Tag intentionally unused parameters with this macro to prevent
 ** compiler warnings with -Wextra */
 #define UNUSED_PARAMETER(X)  (void)(X)
@@ -342,6 +351,7 @@ struct PMacro {
 */
 struct Pik {
   unsigned nErr;           /* Number of errors seen */
+  unsigned nToken;         /* Number of tokens parsed */
   PToken sIn;              /* Input Pikchr-language text */
   char *zOut;              /* Result accumulates here */
   unsigned int nOut;       /* Bytes written to zOut[] so far */
@@ -1191,6 +1201,7 @@ static void circleNumProp(Pik *p, PObj *pObj, PToken *pId){
   /* For a circle, the width must equal the height and both must
   ** be twice the radius.  Enforce those constraints. */
   switch( pId->eType ){
+    case T_DIAMETER:
     case T_RADIUS:
       pObj->w = pObj->h = 2.0*pObj->rad;
       break;
@@ -1917,6 +1928,39 @@ static void pik_append(Pik *p, const char *zText, int n){
 }
 
 /*
+** Given a string and its length, returns true if the string begins
+** with a construct which syntactically matches an HTML entity escape
+** sequence (without checking for whether it's a known entity). Always
+** returns false if zText[0] is false or n<4. Entities match the
+** equivalent of the regexes `&#[0-9]{2,};` and
+** `&[a-zA-Z][a-zA-Z0-9]+;`.
+*/
+static int pik_isentity(char const * zText, int n){
+  int i = 0;
+  if( n<4 || '&'!=zText[0] ) return 0;
+  n--;
+  zText++;
+  if( '#'==zText[0] ){
+    zText++;
+    n--;
+    for(i=0; i<n; i++){
+      if( i>1 && ';'==zText[i] ) return 1;
+      else if( zText[i]<'0' || zText[i]>'9' ) return 0;
+      /* Note that &#nn; values nn<32d are not legal entities. */
+    }
+  }else{
+    for( i=0; i<n; i++ ){
+      if( i>1 && ';'==zText[i] ) return 1;
+      else if( i>0 && zText[i]>='0' && zText[i]<='9' ){
+          continue;
+      }else if( zText[i]<'A' || zText[i]>'z'
+               || (zText[i]>'Z' && zText[i]<'a') ) return 0;
+    }
+  }
+  return 0;
+}
+
+/*
 ** Append text to zOut with HTML characters escaped.
 **
 **   *  The space character is changed into non-breaking space (U+00a0)
@@ -1947,8 +1991,10 @@ static void pik_append_text(Pik *p, const char *zText, int n, int mFlags){
     switch( c ){
       case '<': {  pik_append(p, "&lt;", 4);  break;  }
       case '>': {  pik_append(p, "&gt;", 4);  break;  }
-      case '&': {  pik_append(p, "&amp;", 5);  break;  }
-      case ' ': {  pik_append(p, "\302\240;@", 2);  break;  }
+      case ' ': {  pik_append(p, "\302\240;", 2);  break;  }
+      case '&':
+        if( pik_isentity(zText+i, n-i) ){ pik_append(p, "&", 1); }
+        else { pik_append(p, "&amp;", 5); }
     }
     i++;
     n -= i;
@@ -2035,14 +2081,14 @@ static int pik_color_to_dark_mode(int x, int isBg){
 static void pik_append_x(Pik *p, const char *z1, PNum v, const char *z2){
   char buf[200];
   v -= p->bbox.sw.x;
-  snprintf(buf, sizeof(buf)-1, "%s%d%s", z1, pik_round(p->rScale*v), z2);
+  snprintf(buf, sizeof(buf)-1, "%s%g%s", z1, p->rScale*v, z2);
   buf[sizeof(buf)-1] = 0;
   pik_append(p, buf, -1);
 }
 static void pik_append_y(Pik *p, const char *z1, PNum v, const char *z2){
   char buf[200];
   v = p->bbox.ne.y - v;
-  snprintf(buf, sizeof(buf)-1, "%s%d%s", z1, pik_round(p->rScale*v), z2);
+  snprintf(buf, sizeof(buf)-1, "%s%g%s", z1, p->rScale*v, z2);
   buf[sizeof(buf)-1] = 0;
   pik_append(p, buf, -1);
 }
@@ -2050,8 +2096,7 @@ static void pik_append_xy(Pik *p, const char *z1, PNum x, PNum y){
   char buf[200];
   x = x - p->bbox.sw.x;
   y = p->bbox.ne.y - y;
-  snprintf(buf, sizeof(buf)-1, "%s%d,%d", z1,
-       pik_round(p->rScale*x), pik_round(p->rScale*y));
+  snprintf(buf, sizeof(buf)-1, "%s%g,%g", z1, p->rScale*x, p->rScale*y);
   buf[sizeof(buf)-1] = 0;
   pik_append(p, buf, -1);
 }
@@ -2096,9 +2141,9 @@ static void pik_append_arc(Pik *p, PNum r1, PNum r2, PNum x, PNum y){
   char buf[200];
   x = x - p->bbox.sw.x;
   y = p->bbox.ne.y - y;
-  snprintf(buf, sizeof(buf)-1, "A%d %d 0 0 0 %d %d",
-     pik_round(p->rScale*r1), pik_round(p->rScale*r2),
-     pik_round(p->rScale*x), pik_round(p->rScale*y));
+  snprintf(buf, sizeof(buf)-1, "A%g %g 0 0 0 %g %g",
+     p->rScale*r1, p->rScale*r2,
+     p->rScale*x, p->rScale*y);
   buf[sizeof(buf)-1] = 0;
   pik_append(p, buf, -1);
 }
@@ -3184,10 +3229,7 @@ static void pik_move_hdg(
     n = pik_next_rpath(p, pErr);
   }while( n<1 );
   if( pHeading ){
-    if( rHdg<0.0 || rHdg>360.0 ){
-      pik_error(p, pHeading, "headings should be between 0 and 360");
-      return;
-    }
+    rHdg = fmod(rHdg,360.0);
   }else if( pEdgept->eEdge==CP_C ){
     pik_error(p, pEdgept, "syntax error");
     return;
@@ -4039,7 +4081,7 @@ static PNum pik_property_of(PObj *pObj, PToken *pProp){
 static PNum pik_func(Pik *p, PToken *pFunc, PNum x, PNum y){
   PNum v = 0.0;
   switch( pFunc->eCode ){
-    case FN_ABS:  v = v<0.0 ? -v : v;  break;
+    case FN_ABS:  v = x<0.0 ? -x : x;  break;
     case FN_COS:  v = cos(x);          break;
     case FN_INT:  v = rint(x);         break;
     case FN_SIN:  v = sin(x);          break;
@@ -5138,6 +5180,10 @@ void pik_tokenize(Pik *p, PToken *pIn, yyParser *pParser, PToken *aParam){
              (int)(isspace(token.z[0]) ? 0 : sz), token.z);
 #endif
       token.n = (unsigned short)(sz & 0xffff);
+      if( p->nToken++ > PIKCHR_TOKEN_LIMIT ){
+        pik_error(p, &token, "script is too complex");
+        break;
+      }
       pik_parser(pParser, token.eType, token);
     }
   }
@@ -5233,9 +5279,10 @@ static void usage(const char *argv0){
   fprintf(stderr, "usage: %s [OPTIONS] FILE ...\n", argv0);
   fprintf(stderr,
     "Convert Pikchr input files into SVG.  Filename \"-\" means stdin.\n"
+    "All output goes to stdout.\n"
     "Options:\n"
     "   --dont-stop      Process all files even if earlier files have errors\n"
-    "   --svg-only       Omit raw SVG without the HTML wrapper\n"
+    "   --svg-only       Emit raw SVG without the HTML wrapper\n"
   );
   exit(1);
 }
