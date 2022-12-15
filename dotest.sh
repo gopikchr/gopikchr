@@ -2,10 +2,10 @@
 set -euo pipefail
 
 # echo 'Generating C'
-# (cd c; ../../gopikchr-working/bin/lemonc pikchr.y)
+(cd c; ../../golemon/bin/lemonc pikchr.y)
 
 # echo 'Generating Go'
-# (cd internal; ../../gopikchr-working/bin/lemongo pikchr.y)
+(cd internal; ../../golemon/bin/golemon pikchr.y)
 
 echo 'Building C'
 gcc -DPIKCHR_SHELL=1 -o c/pikchr c/pikchr.c

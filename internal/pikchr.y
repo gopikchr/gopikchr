@@ -147,6 +147,8 @@ const (
   CP_START /* .start */
 )
 
+const PIKCHR_TOKEN_LIMIT = 100000
+
 /* Heading angles corresponding to compass points */
 var pik_hdg_angle = []PNum{
 /* none  */   0.0,
@@ -364,6 +366,7 @@ type PMacro struct {
 */
 type Pik struct {
   nErr int                 /* Number of errors seen */
+  nToken uint              /* Number of tokens parsed */
   sIn PToken               /* Input Pikchr-language text */
   zOut bytes.Buffer        /* Result accumulates here */
   nOut uint                /* Bytes written to zOut[] so far */
@@ -1140,7 +1143,7 @@ func circleNumProp(p *Pik, pObj *PObj, pId *PToken) {
   /* For a circle, the width must equal the height and both must
   ** be twice the radius.  Enforce those constraints. */
   switch pId.eType {
-	case T_RADIUS:
+	case T_DIAMETER, T_RADIUS:
 		pObj.w = 2.0*pObj.rad
 		pObj.h = 2.0*pObj.rad
 	case T_WIDTH:
@@ -1862,7 +1865,23 @@ func (p *Pik) pik_append(zText string){
   p.zOut.WriteString(zText)
 }
 
-var html_re_with_space = regexp.MustCompile(`[<>& ]`)
+var ampersand_entity_re = regexp.MustCompile(`^&(?:#[0-9]{2,}|[a-zA-Z][a-zA-Z0-9]+);`)
+
+/*
+** Given a string, returns true if the string begins
+** with a construct which syntactically matches an HTML entity escape
+** sequence (without checking for whether it's a known entity). Always
+** returns false if zText[0] is false or n<4. Entities match the
+** equivalent of the regexes `&#[0-9]{2,};` and
+** `&[a-zA-Z][a-zA-Z0-9]+;`.
+*/
+func pik_isentity(zText string) bool {
+	/* Note that &#nn; values nn<32d are not legal entities. */
+	return ampersand_entity_re.MatchString(zText)
+}
+
+
+var html_re_with_space = regexp.MustCompile(`[<> ]`)
 
 /*
 ** Append text to zOut with HTML characters escaped.
@@ -1887,15 +1906,26 @@ func (p *Pik) pik_append_text(zText string, mFlags int) {
 			return "&lt;"
 		case s == ">":
 			return "&gt;"
-		case s == "&" && bQAmp:
-			return "&amp;"
 		case s == " " && bQSpace:
 			return "\302\240"
 		default:
 			return s
 		}
 	})
-	p.pik_append(text)
+	if !bQAmp {
+		p.pik_append(text)
+	} else {
+		pieces := strings.Split(text, "&")
+		p.pik_append(pieces[0])
+		for _, piece := range pieces[1:] {
+			if pik_isentity("&"+piece) {
+				p.pik_append("&")
+			} else {
+				p.pik_append("&amp;")
+			}
+			p.pik_append(piece)
+		}
+	}
 }
 
 /*
@@ -1967,16 +1997,16 @@ func pik_color_to_dark_mode(x int, isBg bool) int {
 */
 func (p *Pik) pik_append_x(z1 string, v PNum, z2 string) {
   v -= p.bbox.sw.x
-  p.pik_append(fmt.Sprintf("%s%d%s", z1, pik_round(p.rScale*v), z2))
+  p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
 }
 func (p *Pik) pik_append_y(z1 string, v PNum, z2 string) {
   v = p.bbox.ne.y - v
-  p.pik_append(fmt.Sprintf("%s%d%s", z1, pik_round(p.rScale*v), z2))
+  p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
 }
 func (p *Pik) pik_append_xy(z1 string, x PNum, y PNum) {
   x = x - p.bbox.sw.x
   y = p.bbox.ne.y - y
-  p.pik_append(fmt.Sprintf("%s%d,%d", z1, pik_round(p.rScale*x), pik_round(p.rScale*y)))
+  p.pik_append(fmt.Sprintf("%s%.6g,%.6g", z1, p.rScale*x, p.rScale*y))
 }
 func (p *Pik) pik_append_dis(z1 string, v PNum, z2 string) {
   p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
@@ -2012,9 +2042,9 @@ func (p *Pik) pik_append_clr(z1 string,v PNum,z2 string,bg bool) {
 func (p *Pik) pik_append_arc(r1 PNum, r2 PNum, x PNum, y PNum) {
   x = x - p.bbox.sw.x
   y = p.bbox.ne.y - y
-  buf := fmt.Sprintf("A%d %d 0 0 0 %d %d",
-     pik_round(p.rScale*r1), pik_round(p.rScale*r2),
-     pik_round(p.rScale*x), pik_round(p.rScale*y))
+  buf := fmt.Sprintf("A%.6g %.6g 0 0 0 %.6g %.6g",
+     p.rScale*r1, p.rScale*r2,
+     p.rScale*x, p.rScale*y)
   p.pik_append(buf)
 }
 
@@ -2449,8 +2479,8 @@ func (p *Pik) pik_error(pErr *PToken, zMsg string){
 func (p *Pik) pik_assert(e1 PNum, pEq *PToken, e2 PNum) *PObj {
 	/* Convert the numbers to strings using %g for comparison.  This
 	 ** limits the precision of the comparison to account for rounding error. */
-	zE1 := fmt.Sprintf("%g", e1)
-	zE2 := fmt.Sprintf("%g", e2)
+	zE1 := fmt.Sprintf("%.6g", e1)
+	zE2 := fmt.Sprintf("%.6g", e2)
 	if zE1 != zE2 {
 		p.pik_error(pEq, fmt.Sprintf("%.50s != %.50s", zE1, zE2))
 	}
@@ -2463,8 +2493,8 @@ func (p *Pik) pik_assert(e1 PNum, pEq *PToken, e2 PNum) *PObj {
 func (p *Pik) pik_position_assert(e1 *PPoint, pEq *PToken, e2 *PPoint) *PObj{
   /* Convert the numbers to strings using %g for comparison.  This
 	 ** limits the precision of the comparison to account for rounding error. */
-	zE1 := fmt.Sprintf("(%g,%g)", e1.x, e1.y)
-	zE2 := fmt.Sprintf("(%g,%g)", e2.x, e2.y)
+	zE1 := fmt.Sprintf("(%.6g,%.6g)", e1.x, e1.y)
+	zE2 := fmt.Sprintf("(%.6g,%.6g)", e2.x, e2.y)
 	if zE1 != zE2 {
 		p.pik_error(pEq, fmt.Sprintf("%s != %s", zE1, zE2))
 	}
@@ -3052,10 +3082,7 @@ func (p *Pik) pik_move_hdg(
     n = p.pik_next_rpath(pErr)
   }
   if pHeading != nil {
-    if rHdg<0.0 || rHdg>360.0 {
-      p.pik_error(pHeading, "headings should be between 0 and 360")
-      return
-    }
+      rHdg = math.Mod(rHdg, 360)
   } else if pEdgept.eEdge==CP_C {
     p.pik_error(pEdgept, "syntax error")
     return
@@ -3904,9 +3931,9 @@ func pik_property_of(pObj *PObj, pProp *PToken) PNum {
 func (p *Pik) pik_func(pFunc *PToken, x PNum, y PNum) PNum {
   var v PNum
   switch pFunc.eCode {
-	case FN_ABS:  v = x; if v < 0 { v = -v }
+	case FN_ABS:  v = x; if v < 0 { v = -x }
 	case FN_COS:  v = math.Cos(x)
-	case FN_INT:  v = math.Round(x)
+	case FN_INT:  v = math.Trunc(x)
 	case FN_SIN:  v = math.Sin(x)
 	case FN_SQRT:
 		if x<0.0 {
@@ -4992,6 +5019,10 @@ func (p *Pik) pik_tokenize(pIn *PToken, pParser *yyParser, aParam []PToken) {
 				yyTokenName[token.eType], token.eType, string(token.z[:n]))
 		} // #endif
 		token.n = sz
+		if p.nToken++; p.nToken > PIKCHR_TOKEN_LIMIT {
+			p.pik_error(&token, "script is too complex")
+			break;
+		}
 		pParser.pik_parser(token.eType, token)
   }
 }

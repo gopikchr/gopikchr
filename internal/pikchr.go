@@ -148,6 +148,8 @@ const (
 	CP_START /* .start */
 )
 
+const PIKCHR_TOKEN_LIMIT = 100000
+
 /* Heading angles corresponding to compass points */
 var pik_hdg_angle = []PNum{
 	/* none  */ 0.0,
@@ -347,11 +349,12 @@ type PObj struct {
 }
 
 // /* A list of graphics objects */
-// type PList struct {
-//   int n;          /* Number of statements in the list */
-//   int nAlloc;     /* Allocated slots in a[] */
-//   PObj **a;       /* Pointers to individual objects */
-// };
+//
+//	type PList struct {
+//	  int n;          /* Number of statements in the list */
+//	  int nAlloc;     /* Allocated slots in a[] */
+//	  PObj **a;       /* Pointers to individual objects */
+//	};
 type PList = []*PObj
 
 /* A macro definition */
@@ -367,6 +370,7 @@ type PMacro struct {
  */
 type Pik struct {
 	nErr      int          /* Number of errors seen */
+	nToken    uint         /* Number of tokens parsed */
 	sIn       PToken       /* Input Pikchr-language text */
 	zOut      bytes.Buffer /* Result accumulates here */
 	nOut      uint         /* Bytes written to zOut[] so far */
@@ -434,7 +438,7 @@ type PClass struct {
 
 func yytestcase(condition bool) {}
 
-//line 470 "pikchr.go"
+//line 473 "pikchr.go"
 
 /**************** End of %include directives **********************************/
 /* These constants specify the various numeric values for terminal symbols.
@@ -1610,18 +1614,18 @@ func (yypParser *yyParser) yy_destructor(
 	/********* Begin destructor definitions ***************************************/
 	case 99: /* statement_list */
 		{
-//line 450 "pikchr.y"
+//line 453 "pikchr.y"
 			p.pik_elist_free(&(yypminor.yy186))
-//line 1646 "pikchr.go"
+//line 1649 "pikchr.go"
 		}
 		break
 	case 100: /* statement */
 	case 101: /* unnamed_statement */
 	case 102: /* basetype */
 		{
-//line 452 "pikchr.y"
+//line 455 "pikchr.y"
 			p.pik_elem_free((yypminor.yy104))
-//line 1655 "pikchr.go"
+//line 1658 "pikchr.go"
 		}
 		break
 	/********* End destructor definitions *****************************************/
@@ -1833,10 +1837,10 @@ func (yypParser *yyParser) yyStackOverflow() {
 	/* Here code is inserted which will execute if the parser
 	 ** stack every overflows */
 	/******** Begin %stack_overflow code ******************************************/
-//line 483 "pikchr.y"
+//line 486 "pikchr.y"
 
 	p.pik_error(nil, "parser stack overflow")
-//line 1869 "pikchr.go"
+//line 1872 "pikchr.go"
 	/******** End %stack_overflow code ********************************************/
 	/* Suppress warning about unused %extra_argument var */
 	yypParser.p = p
@@ -2259,64 +2263,64 @@ func (yypParser *yyParser) yy_reduce(
 	 */
 	/********** Begin reduce actions **********************************************/
 	case 0: /* document ::= statement_list */
-//line 487 "pikchr.y"
+//line 490 "pikchr.y"
 		{
 			p.pik_render(yypParser.yystack[yypParser.yytos+0].minor.yy186)
 		}
-//line 2296 "pikchr.go"
+//line 2299 "pikchr.go"
 		break
 	case 1: /* statement_list ::= statement */
-//line 490 "pikchr.y"
+//line 493 "pikchr.y"
 		{
 			yylhsminor.yy186 = p.pik_elist_append(nil, yypParser.yystack[yypParser.yytos+0].minor.yy104)
 		}
-//line 2301 "pikchr.go"
+//line 2304 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy186 = yylhsminor.yy186
 		break
 	case 2: /* statement_list ::= statement_list EOL statement */
-//line 492 "pikchr.y"
+//line 495 "pikchr.y"
 		{
 			yylhsminor.yy186 = p.pik_elist_append(yypParser.yystack[yypParser.yytos+-2].minor.yy186, yypParser.yystack[yypParser.yytos+0].minor.yy104)
 		}
-//line 2307 "pikchr.go"
+//line 2310 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy186 = yylhsminor.yy186
 		break
 	case 3: /* statement ::= */
-//line 495 "pikchr.y"
+//line 498 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+1].minor.yy104 = nil
 		}
-//line 2313 "pikchr.go"
+//line 2316 "pikchr.go"
 		break
 	case 4: /* statement ::= direction */
-//line 496 "pikchr.y"
+//line 499 "pikchr.y"
 		{
 			p.pik_set_direction(uint8(yypParser.yystack[yypParser.yytos+0].minor.yy0.eCode))
 			yylhsminor.yy104 = nil
 		}
-//line 2318 "pikchr.go"
+//line 2321 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy104 = yylhsminor.yy104
 		break
 	case 5: /* statement ::= lvalue ASSIGN rvalue */
-//line 497 "pikchr.y"
+//line 500 "pikchr.y"
 		{
 			p.pik_set_var(&yypParser.yystack[yypParser.yytos+-2].minor.yy0, yypParser.yystack[yypParser.yytos+0].minor.yy153, &yypParser.yystack[yypParser.yytos+-1].minor.yy0)
 			yylhsminor.yy104 = nil
 		}
-//line 2324 "pikchr.go"
+//line 2327 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy104 = yylhsminor.yy104
 		break
 	case 6: /* statement ::= PLACENAME COLON unnamed_statement */
-//line 499 "pikchr.y"
+//line 502 "pikchr.y"
 		{
 			yylhsminor.yy104 = yypParser.yystack[yypParser.yytos+0].minor.yy104
 			p.pik_elem_setname(yypParser.yystack[yypParser.yytos+0].minor.yy104, &yypParser.yystack[yypParser.yytos+-2].minor.yy0)
 		}
-//line 2330 "pikchr.go"
+//line 2333 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy104 = yylhsminor.yy104
 		break
 	case 7: /* statement ::= PLACENAME COLON position */
-//line 501 "pikchr.y"
+//line 504 "pikchr.y"
 		{
 			yylhsminor.yy104 = p.pik_elem_new(nil, nil, nil)
 			if yylhsminor.yy104 != nil {
@@ -2324,53 +2328,53 @@ func (yypParser *yyParser) yy_reduce(
 				p.pik_elem_setname(yylhsminor.yy104, &yypParser.yystack[yypParser.yytos+-2].minor.yy0)
 			}
 		}
-//line 2337 "pikchr.go"
+//line 2340 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy104 = yylhsminor.yy104
 		break
 	case 8: /* statement ::= unnamed_statement */
-//line 503 "pikchr.y"
+//line 506 "pikchr.y"
 		{
 			yylhsminor.yy104 = yypParser.yystack[yypParser.yytos+0].minor.yy104
 		}
-//line 2343 "pikchr.go"
+//line 2346 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy104 = yylhsminor.yy104
 		break
 	case 9: /* statement ::= print prlist */
-//line 504 "pikchr.y"
+//line 507 "pikchr.y"
 		{
 			p.pik_append("<br>\n")
 			yypParser.yystack[yypParser.yytos+-1].minor.yy104 = nil
 		}
-//line 2349 "pikchr.go"
+//line 2352 "pikchr.go"
 		break
 	case 10: /* statement ::= ASSERT LP expr EQ expr RP */
-//line 509 "pikchr.y"
+//line 512 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-5].minor.yy104 = p.pik_assert(yypParser.yystack[yypParser.yytos+-3].minor.yy153, &yypParser.yystack[yypParser.yytos+-2].minor.yy0, yypParser.yystack[yypParser.yytos+-1].minor.yy153)
 		}
-//line 2354 "pikchr.go"
+//line 2357 "pikchr.go"
 		break
 	case 11: /* statement ::= ASSERT LP position EQ position RP */
-//line 511 "pikchr.y"
+//line 514 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-5].minor.yy104 = p.pik_position_assert(&yypParser.yystack[yypParser.yytos+-3].minor.yy79, &yypParser.yystack[yypParser.yytos+-2].minor.yy0, &yypParser.yystack[yypParser.yytos+-1].minor.yy79)
 		}
-//line 2359 "pikchr.go"
+//line 2362 "pikchr.go"
 		break
 	case 12: /* statement ::= DEFINE ID CODEBLOCK */
-//line 512 "pikchr.y"
+//line 515 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-2].minor.yy104 = nil
 			p.pik_add_macro(&yypParser.yystack[yypParser.yytos+-1].minor.yy0, &yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2364 "pikchr.go"
+//line 2367 "pikchr.go"
 		break
 	case 13: /* rvalue ::= PLACENAME */
-//line 523 "pikchr.y"
+//line 526 "pikchr.y"
 		{
 			yylhsminor.yy153 = p.pik_lookup_color(&yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2369 "pikchr.go"
+//line 2372 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy153 = yylhsminor.yy153
 		break
 	case 14: /* pritem ::= FILL */
@@ -2380,61 +2384,61 @@ func (yypParser *yyParser) yy_reduce(
 		fallthrough
 	case 16: /* pritem ::= THICKNESS */
 		yytestcase(yyruleno == 16)
-//line 528 "pikchr.y"
+//line 531 "pikchr.y"
 		{
 			p.pik_append_num("", p.pik_value(yypParser.yystack[yypParser.yytos+0].minor.yy0.String(), nil))
 		}
-//line 2379 "pikchr.go"
+//line 2382 "pikchr.go"
 		break
 	case 17: /* pritem ::= rvalue */
-//line 531 "pikchr.y"
+//line 534 "pikchr.y"
 		{
 			p.pik_append_num("", yypParser.yystack[yypParser.yytos+0].minor.yy153)
 		}
-//line 2384 "pikchr.go"
+//line 2387 "pikchr.go"
 		break
 	case 18: /* pritem ::= STRING */
-//line 532 "pikchr.y"
+//line 535 "pikchr.y"
 		{
 			p.pik_append_text(string(yypParser.yystack[yypParser.yytos+0].minor.yy0.z[1:yypParser.yystack[yypParser.yytos+0].minor.yy0.n-1]), 0)
 		}
-//line 2389 "pikchr.go"
+//line 2392 "pikchr.go"
 		break
 	case 19: /* prsep ::= COMMA */
-//line 533 "pikchr.y"
+//line 536 "pikchr.y"
 		{
 			p.pik_append(" ")
 		}
-//line 2394 "pikchr.go"
+//line 2397 "pikchr.go"
 		break
 	case 20: /* unnamed_statement ::= basetype attribute_list */
-//line 536 "pikchr.y"
+//line 539 "pikchr.y"
 		{
 			yylhsminor.yy104 = yypParser.yystack[yypParser.yytos+-1].minor.yy104
 			p.pik_after_adding_attributes(yylhsminor.yy104)
 		}
-//line 2399 "pikchr.go"
+//line 2402 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-1].minor.yy104 = yylhsminor.yy104
 		break
 	case 21: /* basetype ::= CLASSNAME */
-//line 538 "pikchr.y"
+//line 541 "pikchr.y"
 		{
 			yylhsminor.yy104 = p.pik_elem_new(&yypParser.yystack[yypParser.yytos+0].minor.yy0, nil, nil)
 		}
-//line 2405 "pikchr.go"
+//line 2408 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy104 = yylhsminor.yy104
 		break
 	case 22: /* basetype ::= STRING textposition */
-//line 540 "pikchr.y"
+//line 543 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-1].minor.yy0.eCode = int16(yypParser.yystack[yypParser.yytos+0].minor.yy112)
 			yylhsminor.yy104 = p.pik_elem_new(nil, &yypParser.yystack[yypParser.yytos+-1].minor.yy0, nil)
 		}
-//line 2411 "pikchr.go"
+//line 2414 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-1].minor.yy104 = yylhsminor.yy104
 		break
 	case 23: /* basetype ::= LB savelist statement_list RB */
-//line 542 "pikchr.y"
+//line 545 "pikchr.y"
 		{
 			p.list = yypParser.yystack[yypParser.yytos+-2].minor.yy186
 			yypParser.yystack[yypParser.yytos+-3].minor.yy104 = p.pik_elem_new(nil, nil, yypParser.yystack[yypParser.yytos+-1].minor.yy186)
@@ -2442,599 +2446,599 @@ func (yypParser *yyParser) yy_reduce(
 				yypParser.yystack[yypParser.yytos+-3].minor.yy104.errTok = yypParser.yystack[yypParser.yytos+0].minor.yy0
 			}
 		}
-//line 2417 "pikchr.go"
+//line 2420 "pikchr.go"
 		break
 	case 24: /* savelist ::= */
-//line 547 "pikchr.y"
+//line 550 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+1].minor.yy186 = p.list
 			p.list = nil
 		}
-//line 2422 "pikchr.go"
+//line 2425 "pikchr.go"
 		break
 	case 25: /* relexpr ::= expr */
-//line 554 "pikchr.y"
+//line 557 "pikchr.y"
 		{
 			yylhsminor.yy10.rAbs = yypParser.yystack[yypParser.yytos+0].minor.yy153
 			yylhsminor.yy10.rRel = 0
 		}
-//line 2427 "pikchr.go"
+//line 2430 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy10 = yylhsminor.yy10
 		break
 	case 26: /* relexpr ::= expr PERCENT */
-//line 555 "pikchr.y"
+//line 558 "pikchr.y"
 		{
 			yylhsminor.yy10.rAbs = 0
 			yylhsminor.yy10.rRel = yypParser.yystack[yypParser.yytos+-1].minor.yy153 / 100
 		}
-//line 2433 "pikchr.go"
+//line 2436 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-1].minor.yy10 = yylhsminor.yy10
 		break
 	case 27: /* optrelexpr ::= */
-//line 557 "pikchr.y"
+//line 560 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+1].minor.yy10.rAbs = 0
 			yypParser.yystack[yypParser.yytos+1].minor.yy10.rRel = 1.0
 		}
-//line 2439 "pikchr.go"
+//line 2442 "pikchr.go"
 		break
 	case 28: /* attribute_list ::= relexpr alist */
-//line 559 "pikchr.y"
+//line 562 "pikchr.y"
 		{
 			p.pik_add_direction(nil, &yypParser.yystack[yypParser.yytos+-1].minor.yy10)
 		}
-//line 2444 "pikchr.go"
+//line 2447 "pikchr.go"
 		break
 	case 29: /* attribute ::= numproperty relexpr */
-//line 563 "pikchr.y"
+//line 566 "pikchr.y"
 		{
 			p.pik_set_numprop(&yypParser.yystack[yypParser.yytos+-1].minor.yy0, &yypParser.yystack[yypParser.yytos+0].minor.yy10)
 		}
-//line 2449 "pikchr.go"
+//line 2452 "pikchr.go"
 		break
 	case 30: /* attribute ::= dashproperty expr */
-//line 564 "pikchr.y"
+//line 567 "pikchr.y"
 		{
 			p.pik_set_dashed(&yypParser.yystack[yypParser.yytos+-1].minor.yy0, &yypParser.yystack[yypParser.yytos+0].minor.yy153)
 		}
-//line 2454 "pikchr.go"
+//line 2457 "pikchr.go"
 		break
 	case 31: /* attribute ::= dashproperty */
-//line 565 "pikchr.y"
+//line 568 "pikchr.y"
 		{
 			p.pik_set_dashed(&yypParser.yystack[yypParser.yytos+0].minor.yy0, nil)
 		}
-//line 2459 "pikchr.go"
+//line 2462 "pikchr.go"
 		break
 	case 32: /* attribute ::= colorproperty rvalue */
-//line 566 "pikchr.y"
+//line 569 "pikchr.y"
 		{
 			p.pik_set_clrprop(&yypParser.yystack[yypParser.yytos+-1].minor.yy0, yypParser.yystack[yypParser.yytos+0].minor.yy153)
 		}
-//line 2464 "pikchr.go"
+//line 2467 "pikchr.go"
 		break
 	case 33: /* attribute ::= go direction optrelexpr */
-//line 567 "pikchr.y"
+//line 570 "pikchr.y"
 		{
 			p.pik_add_direction(&yypParser.yystack[yypParser.yytos+-1].minor.yy0, &yypParser.yystack[yypParser.yytos+0].minor.yy10)
 		}
-//line 2469 "pikchr.go"
+//line 2472 "pikchr.go"
 		break
 	case 34: /* attribute ::= go direction even position */
-//line 568 "pikchr.y"
+//line 571 "pikchr.y"
 		{
 			p.pik_evenwith(&yypParser.yystack[yypParser.yytos+-2].minor.yy0, &yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2474 "pikchr.go"
+//line 2477 "pikchr.go"
 		break
 	case 35: /* attribute ::= CLOSE */
-//line 569 "pikchr.y"
+//line 572 "pikchr.y"
 		{
 			p.pik_close_path(&yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2479 "pikchr.go"
+//line 2482 "pikchr.go"
 		break
 	case 36: /* attribute ::= CHOP */
-//line 570 "pikchr.y"
+//line 573 "pikchr.y"
 		{
 			p.cur.bChop = true
 		}
-//line 2484 "pikchr.go"
+//line 2487 "pikchr.go"
 		break
 	case 37: /* attribute ::= FROM position */
-//line 571 "pikchr.y"
+//line 574 "pikchr.y"
 		{
 			p.pik_set_from(p.cur, &yypParser.yystack[yypParser.yytos+-1].minor.yy0, &yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2489 "pikchr.go"
+//line 2492 "pikchr.go"
 		break
 	case 38: /* attribute ::= TO position */
-//line 572 "pikchr.y"
+//line 575 "pikchr.y"
 		{
 			p.pik_add_to(p.cur, &yypParser.yystack[yypParser.yytos+-1].minor.yy0, &yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2494 "pikchr.go"
+//line 2497 "pikchr.go"
 		break
 	case 39: /* attribute ::= THEN */
-//line 573 "pikchr.y"
+//line 576 "pikchr.y"
 		{
 			p.pik_then(&yypParser.yystack[yypParser.yytos+0].minor.yy0, p.cur)
 		}
-//line 2499 "pikchr.go"
+//line 2502 "pikchr.go"
 		break
 	case 40: /* attribute ::= THEN optrelexpr HEADING expr */
 		fallthrough
 	case 42: /* attribute ::= GO optrelexpr HEADING expr */
 		yytestcase(yyruleno == 42)
-//line 575 "pikchr.y"
+//line 578 "pikchr.y"
 		{
 			p.pik_move_hdg(&yypParser.yystack[yypParser.yytos+-2].minor.yy10, &yypParser.yystack[yypParser.yytos+-1].minor.yy0, yypParser.yystack[yypParser.yytos+0].minor.yy153, nil, &yypParser.yystack[yypParser.yytos+-3].minor.yy0)
 		}
-//line 2506 "pikchr.go"
+//line 2509 "pikchr.go"
 		break
 	case 41: /* attribute ::= THEN optrelexpr EDGEPT */
 		fallthrough
 	case 43: /* attribute ::= GO optrelexpr EDGEPT */
 		yytestcase(yyruleno == 43)
-//line 576 "pikchr.y"
+//line 579 "pikchr.y"
 		{
 			p.pik_move_hdg(&yypParser.yystack[yypParser.yytos+-1].minor.yy10, nil, 0, &yypParser.yystack[yypParser.yytos+0].minor.yy0, &yypParser.yystack[yypParser.yytos+-2].minor.yy0)
 		}
-//line 2513 "pikchr.go"
+//line 2516 "pikchr.go"
 		break
 	case 44: /* attribute ::= AT position */
-//line 581 "pikchr.y"
+//line 584 "pikchr.y"
 		{
 			p.pik_set_at(nil, &yypParser.yystack[yypParser.yytos+0].minor.yy79, &yypParser.yystack[yypParser.yytos+-1].minor.yy0)
 		}
-//line 2518 "pikchr.go"
+//line 2521 "pikchr.go"
 		break
 	case 45: /* attribute ::= SAME */
-//line 583 "pikchr.y"
+//line 586 "pikchr.y"
 		{
 			p.pik_same(nil, &yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2523 "pikchr.go"
+//line 2526 "pikchr.go"
 		break
 	case 46: /* attribute ::= SAME AS object */
-//line 584 "pikchr.y"
+//line 587 "pikchr.y"
 		{
 			p.pik_same(yypParser.yystack[yypParser.yytos+0].minor.yy104, &yypParser.yystack[yypParser.yytos+-2].minor.yy0)
 		}
-//line 2528 "pikchr.go"
+//line 2531 "pikchr.go"
 		break
 	case 47: /* attribute ::= STRING textposition */
-//line 585 "pikchr.y"
+//line 588 "pikchr.y"
 		{
 			p.pik_add_txt(&yypParser.yystack[yypParser.yytos+-1].minor.yy0, int16(yypParser.yystack[yypParser.yytos+0].minor.yy112))
 		}
-//line 2533 "pikchr.go"
+//line 2536 "pikchr.go"
 		break
 	case 48: /* attribute ::= FIT */
-//line 586 "pikchr.y"
+//line 589 "pikchr.y"
 		{
 			p.pik_size_to_fit(&yypParser.yystack[yypParser.yytos+0].minor.yy0, 3)
 		}
-//line 2538 "pikchr.go"
+//line 2541 "pikchr.go"
 		break
 	case 49: /* attribute ::= BEHIND object */
-//line 587 "pikchr.y"
+//line 590 "pikchr.y"
 		{
 			p.pik_behind(yypParser.yystack[yypParser.yytos+0].minor.yy104)
 		}
-//line 2543 "pikchr.go"
+//line 2546 "pikchr.go"
 		break
 	case 50: /* withclause ::= DOT_E edge AT position */
 		fallthrough
 	case 51: /* withclause ::= edge AT position */
 		yytestcase(yyruleno == 51)
-//line 595 "pikchr.y"
+//line 598 "pikchr.y"
 		{
 			p.pik_set_at(&yypParser.yystack[yypParser.yytos+-2].minor.yy0, &yypParser.yystack[yypParser.yytos+0].minor.yy79, &yypParser.yystack[yypParser.yytos+-1].minor.yy0)
 		}
-//line 2550 "pikchr.go"
+//line 2553 "pikchr.go"
 		break
 	case 52: /* numproperty ::= HEIGHT|WIDTH|RADIUS|DIAMETER|THICKNESS */
-//line 599 "pikchr.y"
+//line 602 "pikchr.y"
 		{
 			yylhsminor.yy0 = yypParser.yystack[yypParser.yytos+0].minor.yy0
 		}
-//line 2555 "pikchr.go"
+//line 2558 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy0 = yylhsminor.yy0
 		break
 	case 53: /* boolproperty ::= CW */
-//line 610 "pikchr.y"
+//line 613 "pikchr.y"
 		{
 			p.cur.cw = true
 		}
-//line 2561 "pikchr.go"
+//line 2564 "pikchr.go"
 		break
 	case 54: /* boolproperty ::= CCW */
-//line 611 "pikchr.y"
+//line 614 "pikchr.y"
 		{
 			p.cur.cw = false
 		}
-//line 2566 "pikchr.go"
+//line 2569 "pikchr.go"
 		break
 	case 55: /* boolproperty ::= LARROW */
-//line 612 "pikchr.y"
+//line 615 "pikchr.y"
 		{
 			p.cur.larrow = true
 			p.cur.rarrow = false
 		}
-//line 2571 "pikchr.go"
+//line 2574 "pikchr.go"
 		break
 	case 56: /* boolproperty ::= RARROW */
-//line 613 "pikchr.y"
+//line 616 "pikchr.y"
 		{
 			p.cur.larrow = false
 			p.cur.rarrow = true
 		}
-//line 2576 "pikchr.go"
+//line 2579 "pikchr.go"
 		break
 	case 57: /* boolproperty ::= LRARROW */
-//line 614 "pikchr.y"
+//line 617 "pikchr.y"
 		{
 			p.cur.larrow = true
 			p.cur.rarrow = true
 		}
-//line 2581 "pikchr.go"
+//line 2584 "pikchr.go"
 		break
 	case 58: /* boolproperty ::= INVIS */
-//line 615 "pikchr.y"
+//line 618 "pikchr.y"
 		{
 			p.cur.sw = 0.0
 		}
-//line 2586 "pikchr.go"
+//line 2589 "pikchr.go"
 		break
 	case 59: /* boolproperty ::= THICK */
-//line 616 "pikchr.y"
+//line 619 "pikchr.y"
 		{
 			p.cur.sw *= 1.5
 		}
-//line 2591 "pikchr.go"
+//line 2594 "pikchr.go"
 		break
 	case 60: /* boolproperty ::= THIN */
-//line 617 "pikchr.y"
+//line 620 "pikchr.y"
 		{
 			p.cur.sw *= 0.67
 		}
-//line 2596 "pikchr.go"
+//line 2599 "pikchr.go"
 		break
 	case 61: /* boolproperty ::= SOLID */
-//line 618 "pikchr.y"
+//line 621 "pikchr.y"
 		{
 			p.cur.sw = p.pik_value("thickness", nil)
 			p.cur.dotted = 0.0
 			p.cur.dashed = 0.0
 		}
-//line 2602 "pikchr.go"
+//line 2605 "pikchr.go"
 		break
 	case 62: /* textposition ::= */
-//line 621 "pikchr.y"
+//line 624 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+1].minor.yy112 = 0
 		}
-//line 2607 "pikchr.go"
+//line 2610 "pikchr.go"
 		break
 	case 63: /* textposition ::= textposition CENTER|LJUST|RJUST|ABOVE|BELOW|ITALIC|BOLD|ALIGNED|BIG|SMALL */
-//line 624 "pikchr.y"
+//line 627 "pikchr.y"
 		{
 			yylhsminor.yy112 = pik_text_position(yypParser.yystack[yypParser.yytos+-1].minor.yy112, &yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2612 "pikchr.go"
+//line 2615 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-1].minor.yy112 = yylhsminor.yy112
 		break
 	case 64: /* position ::= expr COMMA expr */
-//line 627 "pikchr.y"
+//line 630 "pikchr.y"
 		{
 			yylhsminor.yy79.x = yypParser.yystack[yypParser.yytos+-2].minor.yy153
 			yylhsminor.yy79.y = yypParser.yystack[yypParser.yytos+0].minor.yy153
 		}
-//line 2618 "pikchr.go"
+//line 2621 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy79 = yylhsminor.yy79
 		break
 	case 65: /* position ::= place PLUS expr COMMA expr */
-//line 629 "pikchr.y"
+//line 632 "pikchr.y"
 		{
 			yylhsminor.yy79.x = yypParser.yystack[yypParser.yytos+-4].minor.yy79.x + yypParser.yystack[yypParser.yytos+-2].minor.yy153
 			yylhsminor.yy79.y = yypParser.yystack[yypParser.yytos+-4].minor.yy79.y + yypParser.yystack[yypParser.yytos+0].minor.yy153
 		}
-//line 2624 "pikchr.go"
+//line 2627 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-4].minor.yy79 = yylhsminor.yy79
 		break
 	case 66: /* position ::= place MINUS expr COMMA expr */
-//line 630 "pikchr.y"
+//line 633 "pikchr.y"
 		{
 			yylhsminor.yy79.x = yypParser.yystack[yypParser.yytos+-4].minor.yy79.x - yypParser.yystack[yypParser.yytos+-2].minor.yy153
 			yylhsminor.yy79.y = yypParser.yystack[yypParser.yytos+-4].minor.yy79.y - yypParser.yystack[yypParser.yytos+0].minor.yy153
 		}
-//line 2630 "pikchr.go"
+//line 2633 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-4].minor.yy79 = yylhsminor.yy79
 		break
 	case 67: /* position ::= place PLUS LP expr COMMA expr RP */
-//line 632 "pikchr.y"
+//line 635 "pikchr.y"
 		{
 			yylhsminor.yy79.x = yypParser.yystack[yypParser.yytos+-6].minor.yy79.x + yypParser.yystack[yypParser.yytos+-3].minor.yy153
 			yylhsminor.yy79.y = yypParser.yystack[yypParser.yytos+-6].minor.yy79.y + yypParser.yystack[yypParser.yytos+-1].minor.yy153
 		}
-//line 2636 "pikchr.go"
+//line 2639 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-6].minor.yy79 = yylhsminor.yy79
 		break
 	case 68: /* position ::= place MINUS LP expr COMMA expr RP */
-//line 634 "pikchr.y"
+//line 637 "pikchr.y"
 		{
 			yylhsminor.yy79.x = yypParser.yystack[yypParser.yytos+-6].minor.yy79.x - yypParser.yystack[yypParser.yytos+-3].minor.yy153
 			yylhsminor.yy79.y = yypParser.yystack[yypParser.yytos+-6].minor.yy79.y - yypParser.yystack[yypParser.yytos+-1].minor.yy153
 		}
-//line 2642 "pikchr.go"
+//line 2645 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-6].minor.yy79 = yylhsminor.yy79
 		break
 	case 69: /* position ::= LP position COMMA position RP */
-//line 635 "pikchr.y"
+//line 638 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-4].minor.yy79.x = yypParser.yystack[yypParser.yytos+-3].minor.yy79.x
 			yypParser.yystack[yypParser.yytos+-4].minor.yy79.y = yypParser.yystack[yypParser.yytos+-1].minor.yy79.y
 		}
-//line 2648 "pikchr.go"
+//line 2651 "pikchr.go"
 		break
 	case 70: /* position ::= LP position RP */
-//line 636 "pikchr.y"
+//line 639 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-2].minor.yy79 = yypParser.yystack[yypParser.yytos+-1].minor.yy79
 		}
-//line 2653 "pikchr.go"
+//line 2656 "pikchr.go"
 		break
 	case 71: /* position ::= expr between position AND position */
-//line 638 "pikchr.y"
+//line 641 "pikchr.y"
 		{
 			yylhsminor.yy79 = pik_position_between(yypParser.yystack[yypParser.yytos+-4].minor.yy153, yypParser.yystack[yypParser.yytos+-2].minor.yy79, yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2658 "pikchr.go"
+//line 2661 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-4].minor.yy79 = yylhsminor.yy79
 		break
 	case 72: /* position ::= expr LT position COMMA position GT */
-//line 640 "pikchr.y"
+//line 643 "pikchr.y"
 		{
 			yylhsminor.yy79 = pik_position_between(yypParser.yystack[yypParser.yytos+-5].minor.yy153, yypParser.yystack[yypParser.yytos+-3].minor.yy79, yypParser.yystack[yypParser.yytos+-1].minor.yy79)
 		}
-//line 2664 "pikchr.go"
+//line 2667 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-5].minor.yy79 = yylhsminor.yy79
 		break
 	case 73: /* position ::= expr ABOVE position */
-//line 641 "pikchr.y"
+//line 644 "pikchr.y"
 		{
 			yylhsminor.yy79 = yypParser.yystack[yypParser.yytos+0].minor.yy79
 			yylhsminor.yy79.y += yypParser.yystack[yypParser.yytos+-2].minor.yy153
 		}
-//line 2670 "pikchr.go"
+//line 2673 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy79 = yylhsminor.yy79
 		break
 	case 74: /* position ::= expr BELOW position */
-//line 642 "pikchr.y"
+//line 645 "pikchr.y"
 		{
 			yylhsminor.yy79 = yypParser.yystack[yypParser.yytos+0].minor.yy79
 			yylhsminor.yy79.y -= yypParser.yystack[yypParser.yytos+-2].minor.yy153
 		}
-//line 2676 "pikchr.go"
+//line 2679 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy79 = yylhsminor.yy79
 		break
 	case 75: /* position ::= expr LEFT OF position */
-//line 643 "pikchr.y"
+//line 646 "pikchr.y"
 		{
 			yylhsminor.yy79 = yypParser.yystack[yypParser.yytos+0].minor.yy79
 			yylhsminor.yy79.x -= yypParser.yystack[yypParser.yytos+-3].minor.yy153
 		}
-//line 2682 "pikchr.go"
+//line 2685 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-3].minor.yy79 = yylhsminor.yy79
 		break
 	case 76: /* position ::= expr RIGHT OF position */
-//line 644 "pikchr.y"
+//line 647 "pikchr.y"
 		{
 			yylhsminor.yy79 = yypParser.yystack[yypParser.yytos+0].minor.yy79
 			yylhsminor.yy79.x += yypParser.yystack[yypParser.yytos+-3].minor.yy153
 		}
-//line 2688 "pikchr.go"
+//line 2691 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-3].minor.yy79 = yylhsminor.yy79
 		break
 	case 77: /* position ::= expr ON HEADING EDGEPT OF position */
-//line 646 "pikchr.y"
+//line 649 "pikchr.y"
 		{
 			yylhsminor.yy79 = pik_position_at_hdg(yypParser.yystack[yypParser.yytos+-5].minor.yy153, &yypParser.yystack[yypParser.yytos+-2].minor.yy0, yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2694 "pikchr.go"
+//line 2697 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-5].minor.yy79 = yylhsminor.yy79
 		break
 	case 78: /* position ::= expr HEADING EDGEPT OF position */
-//line 648 "pikchr.y"
+//line 651 "pikchr.y"
 		{
 			yylhsminor.yy79 = pik_position_at_hdg(yypParser.yystack[yypParser.yytos+-4].minor.yy153, &yypParser.yystack[yypParser.yytos+-2].minor.yy0, yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2700 "pikchr.go"
+//line 2703 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-4].minor.yy79 = yylhsminor.yy79
 		break
 	case 79: /* position ::= expr EDGEPT OF position */
-//line 650 "pikchr.y"
+//line 653 "pikchr.y"
 		{
 			yylhsminor.yy79 = pik_position_at_hdg(yypParser.yystack[yypParser.yytos+-3].minor.yy153, &yypParser.yystack[yypParser.yytos+-2].minor.yy0, yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2706 "pikchr.go"
+//line 2709 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-3].minor.yy79 = yylhsminor.yy79
 		break
 	case 80: /* position ::= expr ON HEADING expr FROM position */
-//line 652 "pikchr.y"
+//line 655 "pikchr.y"
 		{
 			yylhsminor.yy79 = pik_position_at_angle(yypParser.yystack[yypParser.yytos+-5].minor.yy153, yypParser.yystack[yypParser.yytos+-2].minor.yy153, yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2712 "pikchr.go"
+//line 2715 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-5].minor.yy79 = yylhsminor.yy79
 		break
 	case 81: /* position ::= expr HEADING expr FROM position */
-//line 654 "pikchr.y"
+//line 657 "pikchr.y"
 		{
 			yylhsminor.yy79 = pik_position_at_angle(yypParser.yystack[yypParser.yytos+-4].minor.yy153, yypParser.yystack[yypParser.yytos+-2].minor.yy153, yypParser.yystack[yypParser.yytos+0].minor.yy79)
 		}
-//line 2718 "pikchr.go"
+//line 2721 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-4].minor.yy79 = yylhsminor.yy79
 		break
 	case 82: /* place ::= edge OF object */
-//line 666 "pikchr.y"
+//line 669 "pikchr.y"
 		{
 			yylhsminor.yy79 = p.pik_place_of_elem(yypParser.yystack[yypParser.yytos+0].minor.yy104, &yypParser.yystack[yypParser.yytos+-2].minor.yy0)
 		}
-//line 2724 "pikchr.go"
+//line 2727 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy79 = yylhsminor.yy79
 		break
 	case 83: /* place2 ::= object */
-//line 667 "pikchr.y"
+//line 670 "pikchr.y"
 		{
 			yylhsminor.yy79 = p.pik_place_of_elem(yypParser.yystack[yypParser.yytos+0].minor.yy104, nil)
 		}
-//line 2730 "pikchr.go"
+//line 2733 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy79 = yylhsminor.yy79
 		break
 	case 84: /* place2 ::= object DOT_E edge */
-//line 668 "pikchr.y"
+//line 671 "pikchr.y"
 		{
 			yylhsminor.yy79 = p.pik_place_of_elem(yypParser.yystack[yypParser.yytos+-2].minor.yy104, &yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2736 "pikchr.go"
+//line 2739 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy79 = yylhsminor.yy79
 		break
 	case 85: /* place2 ::= NTH VERTEX OF object */
-//line 669 "pikchr.y"
+//line 672 "pikchr.y"
 		{
 			yylhsminor.yy79 = p.pik_nth_vertex(&yypParser.yystack[yypParser.yytos+-3].minor.yy0, &yypParser.yystack[yypParser.yytos+-2].minor.yy0, yypParser.yystack[yypParser.yytos+0].minor.yy104)
 		}
-//line 2742 "pikchr.go"
+//line 2745 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-3].minor.yy79 = yylhsminor.yy79
 		break
 	case 86: /* object ::= nth */
-//line 681 "pikchr.y"
+//line 684 "pikchr.y"
 		{
 			yylhsminor.yy104 = p.pik_find_nth(nil, &yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2748 "pikchr.go"
+//line 2751 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy104 = yylhsminor.yy104
 		break
 	case 87: /* object ::= nth OF|IN object */
-//line 682 "pikchr.y"
+//line 685 "pikchr.y"
 		{
 			yylhsminor.yy104 = p.pik_find_nth(yypParser.yystack[yypParser.yytos+0].minor.yy104, &yypParser.yystack[yypParser.yytos+-2].minor.yy0)
 		}
-//line 2754 "pikchr.go"
+//line 2757 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy104 = yylhsminor.yy104
 		break
 	case 88: /* objectname ::= THIS */
-//line 684 "pikchr.y"
+//line 687 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+0].minor.yy104 = p.cur
 		}
-//line 2760 "pikchr.go"
+//line 2763 "pikchr.go"
 		break
 	case 89: /* objectname ::= PLACENAME */
-//line 685 "pikchr.y"
+//line 688 "pikchr.y"
 		{
 			yylhsminor.yy104 = p.pik_find_byname(nil, &yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2765 "pikchr.go"
+//line 2768 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy104 = yylhsminor.yy104
 		break
 	case 90: /* objectname ::= objectname DOT_U PLACENAME */
-//line 687 "pikchr.y"
+//line 690 "pikchr.y"
 		{
 			yylhsminor.yy104 = p.pik_find_byname(yypParser.yystack[yypParser.yytos+-2].minor.yy104, &yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2771 "pikchr.go"
+//line 2774 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy104 = yylhsminor.yy104
 		break
 	case 91: /* nth ::= NTH CLASSNAME */
-//line 689 "pikchr.y"
+//line 692 "pikchr.y"
 		{
 			yylhsminor.yy0 = yypParser.yystack[yypParser.yytos+0].minor.yy0
 			yylhsminor.yy0.eCode = p.pik_nth_value(&yypParser.yystack[yypParser.yytos+-1].minor.yy0)
 		}
-//line 2777 "pikchr.go"
+//line 2780 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-1].minor.yy0 = yylhsminor.yy0
 		break
 	case 92: /* nth ::= NTH LAST CLASSNAME */
-//line 690 "pikchr.y"
+//line 693 "pikchr.y"
 		{
 			yylhsminor.yy0 = yypParser.yystack[yypParser.yytos+0].minor.yy0
 			yylhsminor.yy0.eCode = -p.pik_nth_value(&yypParser.yystack[yypParser.yytos+-2].minor.yy0)
 		}
-//line 2783 "pikchr.go"
+//line 2786 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy0 = yylhsminor.yy0
 		break
 	case 93: /* nth ::= LAST CLASSNAME */
-//line 691 "pikchr.y"
+//line 694 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-1].minor.yy0 = yypParser.yystack[yypParser.yytos+0].minor.yy0
 			yypParser.yystack[yypParser.yytos+-1].minor.yy0.eCode = -1
 		}
-//line 2789 "pikchr.go"
+//line 2792 "pikchr.go"
 		break
 	case 94: /* nth ::= LAST */
-//line 692 "pikchr.y"
+//line 695 "pikchr.y"
 		{
 			yylhsminor.yy0 = yypParser.yystack[yypParser.yytos+0].minor.yy0
 			yylhsminor.yy0.eCode = -1
 		}
-//line 2794 "pikchr.go"
+//line 2797 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy0 = yylhsminor.yy0
 		break
 	case 95: /* nth ::= NTH LB RB */
-//line 693 "pikchr.y"
+//line 696 "pikchr.y"
 		{
 			yylhsminor.yy0 = yypParser.yystack[yypParser.yytos+-1].minor.yy0
 			yylhsminor.yy0.eCode = p.pik_nth_value(&yypParser.yystack[yypParser.yytos+-2].minor.yy0)
 		}
-//line 2800 "pikchr.go"
+//line 2803 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy0 = yylhsminor.yy0
 		break
 	case 96: /* nth ::= NTH LAST LB RB */
-//line 694 "pikchr.y"
+//line 697 "pikchr.y"
 		{
 			yylhsminor.yy0 = yypParser.yystack[yypParser.yytos+-1].minor.yy0
 			yylhsminor.yy0.eCode = -p.pik_nth_value(&yypParser.yystack[yypParser.yytos+-3].minor.yy0)
 		}
-//line 2806 "pikchr.go"
+//line 2809 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-3].minor.yy0 = yylhsminor.yy0
 		break
 	case 97: /* nth ::= LAST LB RB */
-//line 695 "pikchr.y"
+//line 698 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-2].minor.yy0 = yypParser.yystack[yypParser.yytos+-1].minor.yy0
 			yypParser.yystack[yypParser.yytos+-2].minor.yy0.eCode = -1
 		}
-//line 2812 "pikchr.go"
+//line 2815 "pikchr.go"
 		break
 	case 98: /* expr ::= expr PLUS expr */
-//line 697 "pikchr.y"
+//line 700 "pikchr.y"
 		{
 			yylhsminor.yy153 = yypParser.yystack[yypParser.yytos+-2].minor.yy153 + yypParser.yystack[yypParser.yytos+0].minor.yy153
 		}
-//line 2817 "pikchr.go"
+//line 2820 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy153 = yylhsminor.yy153
 		break
 	case 99: /* expr ::= expr MINUS expr */
-//line 698 "pikchr.y"
+//line 701 "pikchr.y"
 		{
 			yylhsminor.yy153 = yypParser.yystack[yypParser.yytos+-2].minor.yy153 - yypParser.yystack[yypParser.yytos+0].minor.yy153
 		}
-//line 2823 "pikchr.go"
+//line 2826 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy153 = yylhsminor.yy153
 		break
 	case 100: /* expr ::= expr STAR expr */
-//line 699 "pikchr.y"
+//line 702 "pikchr.y"
 		{
 			yylhsminor.yy153 = yypParser.yystack[yypParser.yytos+-2].minor.yy153 * yypParser.yystack[yypParser.yytos+0].minor.yy153
 		}
-//line 2829 "pikchr.go"
+//line 2832 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy153 = yylhsminor.yy153
 		break
 	case 101: /* expr ::= expr SLASH expr */
-//line 700 "pikchr.y"
+//line 703 "pikchr.y"
 		{
 			if yypParser.yystack[yypParser.yytos+0].minor.yy153 == 0.0 {
 				p.pik_error(&yypParser.yystack[yypParser.yytos+-1].minor.yy0, "division by zero")
@@ -3043,90 +3047,90 @@ func (yypParser *yyParser) yy_reduce(
 				yylhsminor.yy153 = yypParser.yystack[yypParser.yytos+-2].minor.yy153 / yypParser.yystack[yypParser.yytos+0].minor.yy153
 			}
 		}
-//line 2837 "pikchr.go"
+//line 2840 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy153 = yylhsminor.yy153
 		break
 	case 102: /* expr ::= MINUS expr */
-//line 703 "pikchr.y"
+//line 706 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-1].minor.yy153 = -yypParser.yystack[yypParser.yytos+0].minor.yy153
 		}
-//line 2843 "pikchr.go"
+//line 2846 "pikchr.go"
 		break
 	case 103: /* expr ::= PLUS expr */
-//line 704 "pikchr.y"
+//line 707 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-1].minor.yy153 = yypParser.yystack[yypParser.yytos+0].minor.yy153
 		}
-//line 2848 "pikchr.go"
+//line 2851 "pikchr.go"
 		break
 	case 104: /* expr ::= LP expr RP */
-//line 705 "pikchr.y"
+//line 708 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-2].minor.yy153 = yypParser.yystack[yypParser.yytos+-1].minor.yy153
 		}
-//line 2853 "pikchr.go"
+//line 2856 "pikchr.go"
 		break
 	case 105: /* expr ::= LP FILL|COLOR|THICKNESS RP */
-//line 706 "pikchr.y"
+//line 709 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-2].minor.yy153 = p.pik_get_var(&yypParser.yystack[yypParser.yytos+-1].minor.yy0)
 		}
-//line 2858 "pikchr.go"
+//line 2861 "pikchr.go"
 		break
 	case 106: /* expr ::= NUMBER */
-//line 707 "pikchr.y"
+//line 710 "pikchr.y"
 		{
 			yylhsminor.yy153 = pik_atof(&yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2863 "pikchr.go"
+//line 2866 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy153 = yylhsminor.yy153
 		break
 	case 107: /* expr ::= ID */
-//line 708 "pikchr.y"
+//line 711 "pikchr.y"
 		{
 			yylhsminor.yy153 = p.pik_get_var(&yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2869 "pikchr.go"
+//line 2872 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+0].minor.yy153 = yylhsminor.yy153
 		break
 	case 108: /* expr ::= FUNC1 LP expr RP */
-//line 709 "pikchr.y"
+//line 712 "pikchr.y"
 		{
 			yylhsminor.yy153 = p.pik_func(&yypParser.yystack[yypParser.yytos+-3].minor.yy0, yypParser.yystack[yypParser.yytos+-1].minor.yy153, 0.0)
 		}
-//line 2875 "pikchr.go"
+//line 2878 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-3].minor.yy153 = yylhsminor.yy153
 		break
 	case 109: /* expr ::= FUNC2 LP expr COMMA expr RP */
-//line 710 "pikchr.y"
+//line 713 "pikchr.y"
 		{
 			yylhsminor.yy153 = p.pik_func(&yypParser.yystack[yypParser.yytos+-5].minor.yy0, yypParser.yystack[yypParser.yytos+-3].minor.yy153, yypParser.yystack[yypParser.yytos+-1].minor.yy153)
 		}
-//line 2881 "pikchr.go"
+//line 2884 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-5].minor.yy153 = yylhsminor.yy153
 		break
 	case 110: /* expr ::= DIST LP position COMMA position RP */
-//line 711 "pikchr.y"
+//line 714 "pikchr.y"
 		{
 			yypParser.yystack[yypParser.yytos+-5].minor.yy153 = pik_dist(&yypParser.yystack[yypParser.yytos+-3].minor.yy79, &yypParser.yystack[yypParser.yytos+-1].minor.yy79)
 		}
-//line 2887 "pikchr.go"
+//line 2890 "pikchr.go"
 		break
 	case 111: /* expr ::= place2 DOT_XY X */
-//line 712 "pikchr.y"
+//line 715 "pikchr.y"
 		{
 			yylhsminor.yy153 = yypParser.yystack[yypParser.yytos+-2].minor.yy79.x
 		}
-//line 2892 "pikchr.go"
+//line 2895 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy153 = yylhsminor.yy153
 		break
 	case 112: /* expr ::= place2 DOT_XY Y */
-//line 713 "pikchr.y"
+//line 716 "pikchr.y"
 		{
 			yylhsminor.yy153 = yypParser.yystack[yypParser.yytos+-2].minor.yy79.y
 		}
-//line 2898 "pikchr.go"
+//line 2901 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy153 = yylhsminor.yy153
 		break
 	case 113: /* expr ::= object DOT_L numproperty */
@@ -3136,11 +3140,11 @@ func (yypParser *yyParser) yy_reduce(
 		fallthrough
 	case 115: /* expr ::= object DOT_L colorproperty */
 		yytestcase(yyruleno == 115)
-//line 714 "pikchr.y"
+//line 717 "pikchr.y"
 		{
 			yylhsminor.yy153 = pik_property_of(yypParser.yystack[yypParser.yytos+-2].minor.yy104, &yypParser.yystack[yypParser.yytos+0].minor.yy0)
 		}
-//line 2908 "pikchr.go"
+//line 2911 "pikchr.go"
 		yypParser.yystack[yypParser.yytos+-2].minor.yy153 = yylhsminor.yy153
 		break
 	default:
@@ -3248,14 +3252,14 @@ func (yypParser *yyParser) yy_syntax_error(
 	TOKEN := yyminor
 	_ = TOKEN
 	/************ Begin %syntax_error code ****************************************/
-//line 476 "pikchr.y"
+//line 479 "pikchr.y"
 
 	if TOKEN.z != nil && TOKEN.z[0] != 0 {
 		p.pik_error(&TOKEN, "syntax error")
 	} else {
 		p.pik_error(nil, "syntax error")
 	}
-//line 3021 "pikchr.go"
+//line 3024 "pikchr.go"
 
 	/************ End %syntax_error code ******************************************/
 	/* Suppress warning about unused %extra_argument variable */
@@ -3542,7 +3546,7 @@ func assert(condition bool, message string) {
 	}
 }
 
-//line 719 "pikchr.y"
+//line 722 "pikchr.y"
 
 /* Chart of the 148 official CSS color names with their
 ** corresponding RGB values thru Color Module Level 4:
@@ -4009,7 +4013,7 @@ func circleNumProp(p *Pik, pObj *PObj, pId *PToken) {
 	/* For a circle, the width must equal the height and both must
 	 ** be twice the radius.  Enforce those constraints. */
 	switch pId.eType {
-	case T_RADIUS:
+	case T_DIAMETER, T_RADIUS:
 		pObj.w = 2.0 * pObj.rad
 		pObj.h = 2.0 * pObj.rad
 	case T_WIDTH:
@@ -4825,7 +4829,22 @@ func (p *Pik) pik_append(zText string) {
 	p.zOut.WriteString(zText)
 }
 
-var html_re_with_space = regexp.MustCompile(`[<>& ]`)
+var ampersand_entity_re = regexp.MustCompile(`^&(?:#[0-9]{2,}|[a-zA-Z][a-zA-Z0-9]+);`)
+
+/*
+** Given a string, returns true if the string begins
+** with a construct which syntactically matches an HTML entity escape
+** sequence (without checking for whether it's a known entity). Always
+** returns false if zText[0] is false or n<4. Entities match the
+** equivalent of the regexes `&#[0-9]{2,};` and
+** `&[a-zA-Z][a-zA-Z0-9]+;`.
+ */
+func pik_isentity(zText string) bool {
+	/* Note that &#nn; values nn<32d are not legal entities. */
+	return ampersand_entity_re.MatchString(zText)
+}
+
+var html_re_with_space = regexp.MustCompile(`[<> ]`)
 
 /*
 ** Append text to zOut with HTML characters escaped.
@@ -4850,15 +4869,26 @@ func (p *Pik) pik_append_text(zText string, mFlags int) {
 			return "&lt;"
 		case s == ">":
 			return "&gt;"
-		case s == "&" && bQAmp:
-			return "&amp;"
 		case s == " " && bQSpace:
 			return "\302\240"
 		default:
 			return s
 		}
 	})
-	p.pik_append(text)
+	if !bQAmp {
+		p.pik_append(text)
+	} else {
+		pieces := strings.Split(text, "&")
+		p.pik_append(pieces[0])
+		for _, piece := range pieces[1:] {
+			if pik_isentity("&" + piece) {
+				p.pik_append("&")
+			} else {
+				p.pik_append("&amp;")
+			}
+			p.pik_append(piece)
+		}
+	}
 }
 
 /*
@@ -4938,16 +4968,16 @@ func pik_color_to_dark_mode(x int, isBg bool) int {
  */
 func (p *Pik) pik_append_x(z1 string, v PNum, z2 string) {
 	v -= p.bbox.sw.x
-	p.pik_append(fmt.Sprintf("%s%d%s", z1, pik_round(p.rScale*v), z2))
+	p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
 }
 func (p *Pik) pik_append_y(z1 string, v PNum, z2 string) {
 	v = p.bbox.ne.y - v
-	p.pik_append(fmt.Sprintf("%s%d%s", z1, pik_round(p.rScale*v), z2))
+	p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
 }
 func (p *Pik) pik_append_xy(z1 string, x PNum, y PNum) {
 	x = x - p.bbox.sw.x
 	y = p.bbox.ne.y - y
-	p.pik_append(fmt.Sprintf("%s%d,%d", z1, pik_round(p.rScale*x), pik_round(p.rScale*y)))
+	p.pik_append(fmt.Sprintf("%s%.6g,%.6g", z1, p.rScale*x, p.rScale*y))
 }
 func (p *Pik) pik_append_dis(z1 string, v PNum, z2 string) {
 	p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
@@ -4983,9 +5013,9 @@ func (p *Pik) pik_append_clr(z1 string, v PNum, z2 string, bg bool) {
 func (p *Pik) pik_append_arc(r1 PNum, r2 PNum, x PNum, y PNum) {
 	x = x - p.bbox.sw.x
 	y = p.bbox.ne.y - y
-	buf := fmt.Sprintf("A%d %d 0 0 0 %d %d",
-		pik_round(p.rScale*r1), pik_round(p.rScale*r2),
-		pik_round(p.rScale*x), pik_round(p.rScale*y))
+	buf := fmt.Sprintf("A%.6g %.6g 0 0 0 %.6g %.6g",
+		p.rScale*r1, p.rScale*r2,
+		p.rScale*x, p.rScale*y)
 	p.pik_append(buf)
 }
 
@@ -5496,8 +5526,8 @@ func (p *Pik) pik_error(pErr *PToken, zMsg string) {
 func (p *Pik) pik_assert(e1 PNum, pEq *PToken, e2 PNum) *PObj {
 	/* Convert the numbers to strings using %g for comparison.  This
 	 ** limits the precision of the comparison to account for rounding error. */
-	zE1 := fmt.Sprintf("%g", e1)
-	zE2 := fmt.Sprintf("%g", e2)
+	zE1 := fmt.Sprintf("%.6g", e1)
+	zE2 := fmt.Sprintf("%.6g", e2)
 	if zE1 != zE2 {
 		p.pik_error(pEq, fmt.Sprintf("%.50s != %.50s", zE1, zE2))
 	}
@@ -5510,8 +5540,8 @@ func (p *Pik) pik_assert(e1 PNum, pEq *PToken, e2 PNum) *PObj {
 func (p *Pik) pik_position_assert(e1 *PPoint, pEq *PToken, e2 *PPoint) *PObj {
 	/* Convert the numbers to strings using %g for comparison.  This
 	 ** limits the precision of the comparison to account for rounding error. */
-	zE1 := fmt.Sprintf("(%g,%g)", e1.x, e1.y)
-	zE2 := fmt.Sprintf("(%g,%g)", e2.x, e2.y)
+	zE1 := fmt.Sprintf("(%.6g,%.6g)", e1.x, e1.y)
+	zE2 := fmt.Sprintf("(%.6g,%.6g)", e2.x, e2.y)
 	if zE1 != zE2 {
 		p.pik_error(pEq, fmt.Sprintf("%s != %s", zE1, zE2))
 	}
@@ -6177,10 +6207,7 @@ func (p *Pik) pik_move_hdg(
 		n = p.pik_next_rpath(pErr)
 	}
 	if pHeading != nil {
-		if rHdg < 0.0 || rHdg > 360.0 {
-			p.pik_error(pHeading, "headings should be between 0 and 360")
-			return
-		}
+		rHdg = math.Mod(rHdg, 360)
 	} else if pEdgept.eEdge == CP_C {
 		p.pik_error(pEdgept, "syntax error")
 		return
@@ -7110,12 +7137,12 @@ func (p *Pik) pik_func(pFunc *PToken, x PNum, y PNum) PNum {
 	case FN_ABS:
 		v = x
 		if v < 0 {
-			v = -v
+			v = -x
 		}
 	case FN_COS:
 		v = math.Cos(x)
 	case FN_INT:
-		v = math.Round(x)
+		v = math.Trunc(x)
 	case FN_SIN:
 		v = math.Sin(x)
 	case FN_SQRT:
@@ -8316,6 +8343,10 @@ func (p *Pik) pik_tokenize(pIn *PToken, pParser *yyParser, aParam []PToken) {
 				yyTokenName[token.eType], token.eType, string(token.z[:n]))
 		} // #endif
 		token.n = sz
+		if p.nToken++; p.nToken > PIKCHR_TOKEN_LIMIT {
+			p.pik_error(&token, "script is too complex")
+			break
+		}
 		pParser.pik_parser(token.eType, token)
 	}
 }
@@ -8446,4 +8477,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7702 "pikchr.go"
+//line 7733 "pikchr.go"
