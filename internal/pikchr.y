@@ -1872,7 +1872,7 @@ var ampersand_entity_re = regexp.MustCompile(`^&(?:#[0-9]{2,}|[a-zA-Z]{2,});`)
 ** with a construct which syntactically matches an HTML entity escape
 ** sequence (without checking for whether it's a known entity). Always
 ** returns false if zText[0] is false or n<4. Entities match the
-** equivalent of the regexes `&#[0-9]+;` and `&[a-zA-Z]+;`.
+** equivalent of the regexes `&#[0-9]{2,};` and `&[a-zA-Z]{2,};`.
 */
 func pik_isentity(zText string) bool {
 	return ampersand_entity_re.MatchString(zText)
