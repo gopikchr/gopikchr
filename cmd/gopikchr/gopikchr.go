@@ -108,6 +108,7 @@ func main() {
 func usage(argv0 string) {
 	fmt.Fprintf(os.Stderr, "usage: %s [OPTIONS] FILE ...\n", argv0)
 	fmt.Fprintf(os.Stderr, "Convert Pikchr input files into SVG.  Filename \"-\" means stdin.\n")
+	fmt.Fprintf(os.Stderr, "All output goes to stdout.\n")
 	flag.PrintDefaults()
 	os.Exit(1)
 }
