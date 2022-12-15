@@ -1865,7 +1865,21 @@ func (p *Pik) pik_append(zText string){
   p.zOut.WriteString(zText)
 }
 
-var html_re_with_space = regexp.MustCompile(`[<>& ]`)
+var ampersand_entity_re = regexp.MustCompile(`^&(?:#[0-9]{2,}|[a-zA-Z]{2,});`)
+
+/*
+** Given a string, returns true if the string begins
+** with a construct which syntactically matches an HTML entity escape
+** sequence (without checking for whether it's a known entity). Always
+** returns false if zText[0] is false or n<4. Entities match the
+** equivalent of the regexes `&#[0-9]+;` and `&[a-zA-Z]+;`.
+*/
+func pik_isentity(zText string) bool {
+	return ampersand_entity_re.MatchString(zText)
+}
+
+
+var html_re_with_space = regexp.MustCompile(`[<> ]`)
 
 /*
 ** Append text to zOut with HTML characters escaped.
@@ -1890,15 +1904,26 @@ func (p *Pik) pik_append_text(zText string, mFlags int) {
 			return "&lt;"
 		case s == ">":
 			return "&gt;"
-		case s == "&" && bQAmp:
-			return "&amp;"
 		case s == " " && bQSpace:
 			return "\302\240"
 		default:
 			return s
 		}
 	})
-	p.pik_append(text)
+	if !bQAmp {
+		p.pik_append(text)
+	} else {
+		pieces := strings.Split(text, "&")
+		p.pik_append(pieces[0])
+		for _, piece := range pieces[1:] {
+			if pik_isentity("&"+piece) {
+				p.pik_append("&")
+			} else {
+				p.pik_append("&amp;")
+			}
+			p.pik_append(piece)
+		}
+	}
 }
 
 /*
