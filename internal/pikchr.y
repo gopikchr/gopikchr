@@ -1997,16 +1997,16 @@ func pik_color_to_dark_mode(x int, isBg bool) int {
 */
 func (p *Pik) pik_append_x(z1 string, v PNum, z2 string) {
   v -= p.bbox.sw.x
-  p.pik_append(fmt.Sprintf("%s%d%s", z1, pik_round(p.rScale*v), z2))
+  p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
 }
 func (p *Pik) pik_append_y(z1 string, v PNum, z2 string) {
   v = p.bbox.ne.y - v
-  p.pik_append(fmt.Sprintf("%s%d%s", z1, pik_round(p.rScale*v), z2))
+  p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
 }
 func (p *Pik) pik_append_xy(z1 string, x PNum, y PNum) {
   x = x - p.bbox.sw.x
   y = p.bbox.ne.y - y
-  p.pik_append(fmt.Sprintf("%s%d,%d", z1, pik_round(p.rScale*x), pik_round(p.rScale*y)))
+  p.pik_append(fmt.Sprintf("%s%.6g,%.6g", z1, p.rScale*x, p.rScale*y))
 }
 func (p *Pik) pik_append_dis(z1 string, v PNum, z2 string) {
   p.pik_append(fmt.Sprintf("%s%.6g%s", z1, p.rScale*v, z2))
@@ -2042,9 +2042,9 @@ func (p *Pik) pik_append_clr(z1 string,v PNum,z2 string,bg bool) {
 func (p *Pik) pik_append_arc(r1 PNum, r2 PNum, x PNum, y PNum) {
   x = x - p.bbox.sw.x
   y = p.bbox.ne.y - y
-  buf := fmt.Sprintf("A%d %d 0 0 0 %d %d",
-     pik_round(p.rScale*r1), pik_round(p.rScale*r2),
-     pik_round(p.rScale*x), pik_round(p.rScale*y))
+  buf := fmt.Sprintf("A%.6g %.6g 0 0 0 %.6g %.6g",
+     p.rScale*r1, p.rScale*r2,
+     p.rScale*x, p.rScale*y)
   p.pik_append(buf)
 }
 
@@ -2479,8 +2479,8 @@ func (p *Pik) pik_error(pErr *PToken, zMsg string){
 func (p *Pik) pik_assert(e1 PNum, pEq *PToken, e2 PNum) *PObj {
 	/* Convert the numbers to strings using %g for comparison.  This
 	 ** limits the precision of the comparison to account for rounding error. */
-	zE1 := fmt.Sprintf("%g", e1)
-	zE2 := fmt.Sprintf("%g", e2)
+	zE1 := fmt.Sprintf("%.6g", e1)
+	zE2 := fmt.Sprintf("%.6g", e2)
 	if zE1 != zE2 {
 		p.pik_error(pEq, fmt.Sprintf("%.50s != %.50s", zE1, zE2))
 	}
@@ -2493,8 +2493,8 @@ func (p *Pik) pik_assert(e1 PNum, pEq *PToken, e2 PNum) *PObj {
 func (p *Pik) pik_position_assert(e1 *PPoint, pEq *PToken, e2 *PPoint) *PObj{
   /* Convert the numbers to strings using %g for comparison.  This
 	 ** limits the precision of the comparison to account for rounding error. */
-	zE1 := fmt.Sprintf("(%g,%g)", e1.x, e1.y)
-	zE2 := fmt.Sprintf("(%g,%g)", e2.x, e2.y)
+	zE1 := fmt.Sprintf("(%.6g,%.6g)", e1.x, e1.y)
+	zE2 := fmt.Sprintf("(%.6g,%.6g)", e2.x, e2.y)
 	if zE1 != zE2 {
 		p.pik_error(pEq, fmt.Sprintf("%s != %s", zE1, zE2))
 	}
