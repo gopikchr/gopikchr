@@ -5637,10 +5637,7 @@ func (p *Pik) pik_move_hdg(
     n = p.pik_next_rpath(pErr)
   }
   if pHeading != nil {
-    if rHdg<0.0 || rHdg>360.0 {
-      p.pik_error(pHeading, "headings should be between 0 and 360")
-      return
-    }
+      rHdg = math.Mod(rHdg, 360)
   } else if pEdgept.eEdge==CP_C {
     p.pik_error(pEdgept, "syntax error")
     return
@@ -7699,4 +7696,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7736 "pikchr.go"
+//line 7733 "pikchr.go"
