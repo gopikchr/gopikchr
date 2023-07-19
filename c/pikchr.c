@@ -235,7 +235,7 @@ struct PRel {
 
 /* A variable created by the ID = EXPR construct of the PIKCHR script
 **
-** PIKCHR (and PIC) scripts do not use many varaibles, so it is reasonable
+** PIKCHR (and PIC) scripts do not use many variables, so it is reasonable
 ** to store them all on a linked list.
 */
 struct PVar {
@@ -5601,7 +5601,7 @@ static void pik_elist_move(PList *pList, PNum dx, PNum dy){
 }
 
 /*
-** Check to see if it is ok to set the value of paraemeter mThis.
+** Check to see if it is ok to set the value of parameter mThis.
 ** Return 0 if it is ok. If it not ok, generate an appropriate
 ** error message and return non-zero.
 **
@@ -5975,7 +5975,7 @@ static void pik_close_path(Pik *p, PToken *pErr){
   PObj *pObj = p->cur;
   if( p->nTPath<3 ){
     pik_error(p, pErr,
-      "need at least 3 vertexes in order to close the polygon");
+      "need at least 3 vertices in order to close the polygon");
     return;
   }
   if( pObj->bClose ){
@@ -6864,11 +6864,11 @@ static void pik_after_adding_attributes(Pik *p, PObj *pObj){
     pObj->ptExit = pObj->aPath[pObj->nPath-1];
 
     /* Compute the center of the line based on the bounding box over
-    ** the vertexes.  This is a difference from PIC.  In Pikchr, the
+    ** the vertices.  This is a difference from PIC.  In Pikchr, the
     ** center of a line is the center of its bounding box. In PIC, the
     ** center of a line is halfway between its .start and .end.  For
     ** straight lines, this is the same point, but for multi-segment
-    ** lines the result is usually diferent */
+    ** lines the result is usually different */
     for(i=0; i<pObj->nPath; i++){
       pik_bbox_add_xy(&pObj->bbox, pObj->aPath[i].x, pObj->aPath[i].y);
     }
@@ -6876,7 +6876,7 @@ static void pik_after_adding_attributes(Pik *p, PObj *pObj){
     pObj->ptAt.y = (pObj->bbox.ne.y + pObj->bbox.sw.y)/2.0;
 
     /* Reset the width and height of the object to be the width and height
-    ** of the bounding box over vertexes */
+    ** of the bounding box over vertices */
     pObj->w = pObj->bbox.ne.x - pObj->bbox.sw.x;
     pObj->h = pObj->bbox.ne.y - pObj->bbox.sw.y;
 
@@ -7050,7 +7050,7 @@ static void pik_compute_layout_settings(Pik *p){
 }
 
 /* Render a list of objects.  Write the SVG into p->zOut.
-** Delete the input object_list before returnning.
+** Delete the input object_list before returning.
 */
 static void pik_render(Pik *p, PList *pList){
   if( pList==0 ) return;
