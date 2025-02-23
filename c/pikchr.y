@@ -12,13 +12,13 @@
 ** This software translates a PIC-inspired diagram language into SVG.
 **
 ** PIKCHR (pronounced like "picture") is *mostly* backwards compatible
-** with legacy PIC, though some features of legacy PIC are removed
+** with legacy PIC, though some features of legacy PIC are removed 
 ** (for example, the "sh" command is removed for security) and
 ** many enhancements are added.
 **
 ** PIKCHR is designed for use in an internet facing web environment.
 ** In particular, PIKCHR is designed to safely generate benign SVG from
-** source text that provided by a hostile agent.
+** source text that provided by a hostile agent. 
 **
 ** This code was originally written by D. Richard Hipp using documentation
 ** from prior PIC implementations but without reference to prior code.
@@ -60,7 +60,7 @@
 ** Add -DPIKCHR_SHELL to add a main() routine that reads input files
 ** and sends them through Pikchr, for testing.  Add -DPIKCHR_FUZZ for
 ** -fsanitizer=fuzzer testing.
-**
+** 
 ****************************************************************************
 ** IMPLEMENTATION NOTES (for people who want to understand the internal
 ** operation of this software, perhaps to extend the code or to fix bugs):
@@ -232,7 +232,7 @@ struct PRel {
   PNum rRel;            /* Value relative to current value */
 };
 
-/* A variable created by the ID = EXPR construct of the PIKCHR script
+/* A variable created by the ID = EXPR construct of the PIKCHR script 
 **
 ** PIKCHR (and PIC) scripts do not use many varaibles, so it is reasonable
 ** to store them all on a linked list.
@@ -567,7 +567,7 @@ statement(A) ::= print prlist.  {pik_append(p,"<br>\n",5); A=0;}
 // debugging use only.  If the equality comparison of the assert() fails
 // then an error message is generated.
 statement(A) ::= ASSERT LP expr(X) EQ(OP) expr(Y) RP. {A=pik_assert(p,X,&OP,Y);}
-statement(A) ::= ASSERT LP position(X) EQ(OP) position(Y) RP.
+statement(A) ::= ASSERT LP position(X) EQ(OP) position(Y) RP.  
                                           {A=pik_position_assert(p,&X,&OP,&Y);}
 statement(A) ::= DEFINE ID(ID) CODEBLOCK(C).  {A=0; pik_add_macro(p,&ID,&C);}
 
@@ -592,7 +592,7 @@ pritem ::= rvalue(X).      {pik_append_num(p,"",X);}
 pritem ::= STRING(S). {pik_append_text(p,S.z+1,S.n-2,0);}
 prsep  ::= COMMA. {pik_append(p, " ", 1);}
 
-unnamed_statement(A) ::= basetype(X) attribute_list.
+unnamed_statement(A) ::= basetype(X) attribute_list.  
                           {A = X; pik_after_adding_attributes(p,A);}
 
 basetype(A) ::= CLASSNAME(N).            {A = pik_elem_new(p,&N,0,0); }
@@ -679,7 +679,7 @@ boolproperty ::= SOLID.       {p->cur->sw = pik_value(p,"thickness",9,0);
                                p->cur->dotted = p->cur->dashed = 0.0;}
 
 textposition(A) ::= .   {A = 0;}
-textposition(A) ::= textposition(B)
+textposition(A) ::= textposition(B) 
    CENTER|LJUST|RJUST|ABOVE|BELOW|ITALIC|BOLD|ALIGNED|BIG|SMALL(F).
                         {A = (short int)pik_text_position(B,&F);}
 
@@ -950,7 +950,7 @@ static const struct {
 ** the Pik.pVar list, which is searched first.  Thus the new PVar entry
 ** will override this default value.
 **
-** Units are in inches, except for "color" and "fill" which are
+** Units are in inches, except for "color" and "fill" which are 
 ** interpreted as 24-bit RGB values.
 **
 ** Binary search used.  Must be kept in sorted order.
@@ -1064,7 +1064,7 @@ static void boxInit(Pik *p, PObj *pObj){
   pObj->h = pik_value(p, "boxht",5,0);
   pObj->rad = pik_value(p, "boxrad",6,0);
 }
-/* Return offset from the center of the box to the compass point
+/* Return offset from the center of the box to the compass point 
 ** given by parameter cp */
 static PPoint boxOffset(Pik *p, PObj *pObj, int cp){
   PPoint pt = cZeroPoint;
@@ -1154,7 +1154,7 @@ static void boxRender(Pik *p, PObj *pObj){
       **         ----       - y3
       **        /    \
       **       /      \     _ y2
-      **      |        |
+      **      |        |    
       **      |        |    _ y1
       **       \      /
       **        \    /
@@ -1416,7 +1416,7 @@ static void fileInit(Pik *p, PObj *pObj){
   pObj->h = pik_value(p, "fileht",6,0);
   pObj->rad = pik_value(p, "filerad",7,0);
 }
-/* Return offset from the center of the file to the compass point
+/* Return offset from the center of the file to the compass point 
 ** given by parameter cp */
 static PPoint fileOffset(Pik *p, PObj *pObj, int cp){
   PPoint pt = cZeroPoint;
@@ -1696,7 +1696,7 @@ static const PClass aClass[] = {
       /* xChop */         0,
       /* xOffset */       lineOffset,
       /* xFit */          0,
-      /* xRender */       splineRender
+      /* xRender */       splineRender 
    },
    {  /* name */          "box",
       /* isline */        0,
@@ -1707,7 +1707,7 @@ static const PClass aClass[] = {
       /* xChop */         boxChop,
       /* xOffset */       boxOffset,
       /* xFit */          boxFit,
-      /* xRender */       boxRender
+      /* xRender */       boxRender 
    },
    {  /* name */          "circle",
       /* isline */        0,
@@ -1718,7 +1718,7 @@ static const PClass aClass[] = {
       /* xChop */         circleChop,
       /* xOffset */       ellipseOffset,
       /* xFit */          circleFit,
-      /* xRender */       circleRender
+      /* xRender */       circleRender 
    },
    {  /* name */          "cylinder",
       /* isline */        0,
@@ -1740,7 +1740,7 @@ static const PClass aClass[] = {
       /* xChop */         circleChop,
       /* xOffset */       dotOffset,
       /* xFit */          0,
-      /* xRender */       dotRender
+      /* xRender */       dotRender 
    },
    {  /* name */          "ellipse",
       /* isline */        0,
@@ -1762,7 +1762,7 @@ static const PClass aClass[] = {
       /* xChop */         boxChop,
       /* xOffset */       fileOffset,
       /* xFit */          fileFit,
-      /* xRender */       fileRender
+      /* xRender */       fileRender 
    },
    {  /* name */          "line",
       /* isline */        1,
@@ -1817,10 +1817,10 @@ static const PClass aClass[] = {
       /* xChop */         boxChop,
       /* xOffset */       textOffset,
       /* xFit */          boxFit,
-      /* xRender */       boxRender
+      /* xRender */       boxRender 
    },
 };
-static const PClass sublistClass =
+static const PClass sublistClass = 
    {  /* name */          "[]",
       /* isline */        0,
       /* eJust */         0,
@@ -1830,9 +1830,9 @@ static const PClass sublistClass =
       /* xChop */         0,
       /* xOffset */       boxOffset,
       /* xFit */          0,
-      /* xRender */       0
+      /* xRender */       0 
    };
-static const PClass noopClass =
+static const PClass noopClass = 
    {  /* name */          "noop",
       /* isline */        0,
       /* eJust */         0,
@@ -1949,7 +1949,7 @@ static int pik_isentity(char const * zText, int n){
       /* Note that &#nn; values nn<32d are not legal entities. */
     }
   }else{
-    for( i=0; i<n; i++ ){
+    for(i=0; i<n; i++){
       if( i>1 && ';'==zText[i] ) return 1;
       else if( i>0 && zText[i]>='0' && zText[i]<='9' ){
           continue;
@@ -2030,7 +2030,7 @@ static void pik_append_num(Pik *p, const char *z,PNum v){
 */
 static void pik_append_point(Pik *p, const char *z, PPoint *pPt){
   char buf[100];
-  snprintf(buf, sizeof(buf)-1, "%.10g,%.10g",
+  snprintf(buf, sizeof(buf)-1, "%.10g,%.10g", 
           (double)pPt->x, (double)pPt->y);
   buf[sizeof(buf)-1] = 0;
   pik_append(p, z, -1);
@@ -2141,7 +2141,7 @@ static void pik_append_arc(Pik *p, PNum r1, PNum r2, PNum x, PNum y){
   char buf[200];
   x = x - p->bbox.sw.x;
   y = p->bbox.ne.y - y;
-  snprintf(buf, sizeof(buf)-1, "A%g %g 0 0 0 %g %g",
+  snprintf(buf, sizeof(buf)-1, "A%g %g 0 0 0 %g %g", 
      p->rScale*r1, p->rScale*r2,
      p->rScale*x, p->rScale*y);
   buf[sizeof(buf)-1] = 0;
@@ -3444,8 +3444,8 @@ static int pik_text_position(int iPrev, PToken *pFlag){
     case T_ABOVE:    iRes = (iRes&~TP_VMASK) | TP_ABOVE;  break;
     case T_CENTER:   iRes = (iRes&~TP_VMASK) | TP_CENTER; break;
     case T_BELOW:    iRes = (iRes&~TP_VMASK) | TP_BELOW;  break;
-    case T_ITALIC:   iRes |= TP_ITALIC;                   break;
-    case T_BOLD:     iRes |= TP_BOLD;                     break;
+    case T_ITALIC:   iRes |= TP_ITALIC;                   break; 
+    case T_BOLD:     iRes |= TP_BOLD;                     break; 
     case T_ALIGNED:  iRes |= TP_ALIGN;                    break;
     case T_BIG:      if( iRes & TP_BIG ) iRes |= TP_XTRA;
                      else iRes = (iRes &~TP_SZMASK)|TP_BIG;   break;
@@ -4701,7 +4701,7 @@ static int pik_token_length(PToken *pToken, int bAllowCodeBlock){
     }
     case '"': {
       for(i=1; (c = z[i])!=0; i++){
-        if( c=='\\' ){
+        if( c=='\\' ){ 
           if( z[i+1]==0 ) break;
           i++;
           continue;
@@ -4802,7 +4802,7 @@ static int pik_token_length(PToken *pToken, int bAllowCodeBlock){
         return 1;
       }
     }
-    case '<': {
+    case '<': { 
       if( z[1]=='-' ){
          if( z[2]=='>' ){
            pToken->eType = T_LRARROW;
@@ -5152,7 +5152,7 @@ void pik_tokenize(Pik *p, PToken *pIn, yyParser *pParser, PToken *aParam){
         p->nCtx--;
       }
     }else if( token.eType==T_ID
-               && (token.n = (unsigned short)(sz & 0xffff),
+               && (token.n = (unsigned short)(sz & 0xffff), 
                    (pMac = pik_find_macro(p,&token))!=0)
     ){
       PToken args[9];
@@ -5165,7 +5165,7 @@ void pik_tokenize(Pik *p, PToken *pIn, yyParser *pParser, PToken *aParam){
       if( p->nCtx>=count(p->aCtx) ){
         pik_error(p, &token, "macros nested too deep");
         break;
-      }
+      } 
       pMac->inUse = 1;
       memset(args, 0, sizeof(args));
       p->aCtx[p->nCtx++] = token;
@@ -5362,7 +5362,7 @@ int main(int argc, char **argv){
   int exitCode = 0;            /* What to return */
   int mFlags = 0;              /* mFlags argument to pikchr() */
   const char *zStyle = "";     /* Extra styling */
-  const char *zHtmlHdr =
+  const char *zHtmlHdr = 
     "<!DOCTYPE html>\n"
     "<html lang=\"en-US\">\n"
     "<head>\n<title>PIKCHR Test</title>\n"
@@ -5449,7 +5449,7 @@ int main(int argc, char **argv){
   if( !bSvgOnly ){
     printf("</body></html>\n");
   }
-  return exitCode ? EXIT_FAILURE : EXIT_SUCCESS;
+  return exitCode ? EXIT_FAILURE : EXIT_SUCCESS; 
 }
 #endif /* PIKCHR_SHELL */
 

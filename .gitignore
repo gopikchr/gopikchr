@@ -11,6 +11,8 @@ c/pikchr
 
 # artifacts of generating
 c/pikchr.out
+c/pikchr.c
+c/pikchr.h
 internal/pikchr.out
 
 # testing

@@ -2,7 +2,8 @@
 set -euo pipefail
 
 echo 'Generating Go'
-../../gopikchr-working/bin/lemongo pikchr.y
+../../golemon/bin/golemon pikchr.y
+go fmt ./pikchr.go
 
-echo 'Running Go'
+echo 'Building Go'
 go build -gcflags="-e" ./pikchr.go

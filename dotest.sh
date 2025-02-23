@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# echo 'Generating C'
-(cd c; ../../golemon/bin/lemonc pikchr.y)
+echo 'Generating C'
+(cd c; ../../golemon/bin/lemonc pikchr.y; rm pikchr.h)
 
-# echo 'Generating Go'
+echo 'Generating Go'
+echo ' Running golemon'
 (cd internal; ../../golemon/bin/golemon pikchr.y)
+echo ' Running go fmt'
+(cd internal; go fmt ./pikchr.go)
 
 echo 'Building C'
 gcc -DPIKCHR_SHELL=1 -o c/pikchr c/pikchr.c
@@ -30,9 +33,9 @@ test_all_in_dir () {
     do
         echo " $file"
         name=${file%.pikchr}
-        echo " - C pikchr: $name.pikchr"
+        echo "./c/pikchr $1/$name.pikchr"
         ./c/pikchr $1/$name.pikchr > output/$name-c.html || echo 'ERROR!'
-        echo " - Go pikchr: $name.pikchr"
+        echo "./gopikchr $1/$name.pikchr"
         ./gopikchr $1/$name.pikchr > output/$name-go.html || echo 'ERROR!'
         echo " - Diffing output for $name.pikchr"
         diff output/$name-c.html output/$name-go.html
@@ -41,3 +44,5 @@ test_all_in_dir () {
 
 test_all_in_dir examples
 test_all_in_dir tests
+
+echo "DONE: no failures"
