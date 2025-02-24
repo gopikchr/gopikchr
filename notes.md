@@ -30,3 +30,13 @@
  tests/test45.pikchr        |    3 +-
 
 * Copied code over; updated tests
+
+### commit 90342052ad7ae93f49f6eae66efece1dac498501
+
+    "mono italic" test case added.
+
+    FossilOrigin-Name: fc34d765e110d2b1dba6d7037455494a46a6e2ae4a39fe5d4056217c82ce369b
+
+ tests/test45.pikchr | 2 +-
+
+* only a test was updated; easy!
