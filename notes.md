@@ -52,3 +52,16 @@
  tests/test45.pikchr | 2 +-
 
 * Copied the changes over
+
+### commit 39d140c780320f103d19366e4520f175d20812ac
+
+    Remove the artificial enlargement of "mono" text, as that seems not to be
+    necessary when the output is rendered by Fossil.  Must be some kind of CSS
+    issue.
+
+    FossilOrigin-Name: 03664a38cfb8053340ba733219a2d7ab74d45f10ba32a75f5fb72221238a193f
+
+ pikchr.c | 3 +--
+ pikchr.y | 1 -
+
+* Undid 128% extra size for monospaced font

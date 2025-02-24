@@ -2335,7 +2335,6 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
     }
     if t.eCode&TP_MONO != 0 {
       p.pik_append(" font-family=\"monospace\"")
-      xtraFontScale *= 1.28
     }
     if pObj.color>=0.0 {
       p.pik_append_clr(" fill=\"", pObj.color, "\"",false)
