@@ -2712,7 +2712,7 @@ func (yypParser *yyParser) yy_reduce(
 	case 58: /* boolproperty ::= INVIS */
 //line 619 "pikchr.y"
 		{
-			p.cur.sw = 0.0
+			p.cur.sw = -0.00001
 		}
 //line 2614 "pikchr.go"
 		break
@@ -3830,7 +3830,7 @@ func arcRender(p *Pik, pObj *PObj) {
 	if pObj.nPath < 2 {
 		return
 	}
-	if pObj.sw <= 0.0 {
+	if pObj.sw < 0.0 {
 		return
 	}
 	f := pObj.aPath[0]
@@ -3972,7 +3972,7 @@ func boxRender(p *Pik, pObj *PObj) {
 	var h2 PNum = 0.5 * pObj.h
 	rad := pObj.rad
 	pt := pObj.ptAt
-	if pObj.sw > 0.0 {
+	if pObj.sw >= 0.0 {
 		if rad <= 0.0 {
 			p.pik_append_xy("<path d=\"M", pt.x-w2, pt.y-h2)
 			p.pik_append_xy("L", pt.x+w2, pt.y-h2)
@@ -4086,7 +4086,7 @@ func circleFit(p *Pik, pObj *PObj, w PNum, h PNum) {
 func circleRender(p *Pik, pObj *PObj) {
 	r := pObj.rad
 	pt := pObj.ptAt
-	if pObj.sw > 0.0 {
+	if pObj.sw >= 0.0 {
 		p.pik_append_x("<circle cx=\"", pt.x, "\"")
 		p.pik_append_y(" cy=\"", pt.y, "\"")
 		p.pik_append_dis(" r=\"", r, "\" ")
@@ -4115,7 +4115,7 @@ func cylinderRender(p *Pik, pObj *PObj) {
 	var h2 PNum = 0.5 * pObj.h
 	rad := pObj.rad
 	pt := pObj.ptAt
-	if pObj.sw > 0.0 {
+	if pObj.sw >= 0.0 {
 		if rad > h2 {
 			rad = h2
 		} else if rad < 0 {
@@ -4197,7 +4197,7 @@ func dotOffset(p *Pik, pObj *PObj, cp uint8) PPoint {
 func dotRender(p *Pik, pObj *PObj) {
 	r := pObj.rad
 	pt := pObj.ptAt
-	if pObj.sw > 0.0 {
+	if pObj.sw >= 0.0 {
 		p.pik_append_x("<circle cx=\"", pt.x, "\"")
 		p.pik_append_y(" cy=\"", pt.y, "\"")
 		p.pik_append_dis(" r=\"", r, "\"")
@@ -4274,7 +4274,7 @@ func ellipseRender(p *Pik, pObj *PObj) {
 	w := pObj.w
 	h := pObj.h
 	pt := pObj.ptAt
-	if pObj.sw > 0.0 {
+	if pObj.sw >= 0.0 {
 		p.pik_append_x("<ellipse cx=\"", pt.x, "\"")
 		p.pik_append_y(" cy=\"", pt.y, "\"")
 		p.pik_append_dis(" rx=\"", w/2.0, "\"")
@@ -4366,7 +4366,7 @@ func fileRender(p *Pik, pObj *PObj) {
 	if rad < mn*0.25 {
 		rad = mn * 0.25
 	}
-	if pObj.sw > 0.0 {
+	if pObj.sw >= 0.0 {
 		p.pik_append_xy("<path d=\"M", pt.x-w2, pt.y-h2)
 		p.pik_append_xy("L", pt.x+w2, pt.y-h2)
 		p.pik_append_xy("L", pt.x+w2, pt.y+(h2-rad))
@@ -4587,6 +4587,10 @@ func textOffset(p *Pik, pObj *PObj, cp uint8) PPoint {
 	return boxOffset(p, pObj, cp)
 }
 
+func textRender(p *Pik, pObj *PObj) {
+	p.pik_append_txt(pObj, nil)
+}
+
 /* Methods for the "sublist" class */
 func sublistInit(p *Pik, pObj *PObj) {
 	pList := pObj.pSublist
@@ -4760,7 +4764,7 @@ var aClass = []PClass{
 		xChop:    boxChop,
 		xOffset:  textOffset,
 		xFit:     boxFit,
-		xRender:  boxRender,
+		xRender:  textRender,
 	},
 }
 var sublistClass = PClass{
@@ -5076,7 +5080,7 @@ func (p *Pik) pik_append_style(pObj *PObj, eFill int) {
 	} else {
 		p.pik_append("fill:none;")
 	}
-	if pObj.sw > 0.0 && pObj.color >= 0.0 {
+	if pObj.sw >= 0.0 && pObj.color >= 0.0 {
 		sw := pObj.sw
 		p.pik_append_dis("stroke-width:", sw, ";")
 		if pObj.nPath > 2 && pObj.rad <= pObj.sw {
@@ -7538,7 +7542,7 @@ func (p *Pik) pik_elist_render(pList PList) {
 func (p *Pik) pik_bbox_add_elist(pList PList, wArrow PNum) {
 	for i := 0; i < len(pList); i++ {
 		pObj := pList[i]
-		if pObj.sw > 0.0 {
+		if pObj.sw >= 0.0 {
 			pik_bbox_addbox(&p.bbox, &pObj.bbox)
 		}
 		p.pik_append_txt(pObj, &p.bbox)
@@ -8522,4 +8526,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7779 "pikchr.go"
+//line 7783 "pikchr.go"

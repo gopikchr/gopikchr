@@ -79,3 +79,14 @@
  tests/test77.pikchr  | 11 +++++++++++
 
 * Made the corresponding changes to not override direction
+
+### commit 2d7ef88fa8a116b86e8988e10a2258f626c4d1a5
+
+    Zero-thickness objects draw the background but not the outline.
+
+    FossilOrigin-Name: f30f1fe1869661543d3a908322ab9ce801cdb2455b5faa4965b85c394ef3f8c2
+
+ pikchr.c | 28 ++++++++++++++++------------
+ pikchr.y | 26 +++++++++++++++-----------
+
+* Copied updates over. Mostly `s/>0.0/>=0.0/`
