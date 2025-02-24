@@ -40,3 +40,15 @@
  tests/test45.pikchr | 2 +-
 
 * only a test was updated; easy!
+
+### commit dbb1ae84d63db0512aee45c89286aed7580925c4
+
+    Adjust the font size and text length computations for monospace.
+
+    FossilOrigin-Name: 22e2a2c622aa8186d963c5de23e8bc39217b73628affacd5f661e51106156488
+
+ pikchr.c            | 5 +++--
+ pikchr.y            | 3 ++-
+ tests/test45.pikchr | 2 +-
+
+* Copied the changes over

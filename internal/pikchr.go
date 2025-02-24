@@ -5333,7 +5333,7 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
 			var cw PNum = PNum(pik_text_length(t, t.eCode&TP_MONO != 0)) * p.charWidth * xtraFontScale * 0.01
 			var ch PNum = p.charHeight * 0.5 * xtraFontScale
 			var x0, y0, x1, y1 PNum /* Boundary of text relative to pObj.ptAt */
-			if t.eCode&TP_BOLD != 0 {
+			if t.eCode&(TP_BOLD|TP_MONO) == TP_BOLD {
 				cw *= 1.1
 			}
 			if t.eCode&TP_RJUST != 0 {
@@ -5393,6 +5393,7 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
 		}
 		if t.eCode&TP_MONO != 0 {
 			p.pik_append(" font-family=\"monospace\"")
+			xtraFontScale *= 1.28
 		}
 		if pObj.color >= 0.0 {
 			p.pik_append_clr(" fill=\"", pObj.color, "\"", false)
@@ -8524,4 +8525,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7781 "pikchr.go"
+//line 7782 "pikchr.go"
