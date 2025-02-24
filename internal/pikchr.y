@@ -192,8 +192,9 @@ const (
   TP_SZMASK =  0x0700  /* Font size mask */
   TP_ITALIC =  0x1000  /* Italic font */
   TP_BOLD =    0x2000  /* Bold font */
-  TP_FMASK =   0x3000  /* Mask for font style */
-  TP_ALIGN =   0x4000  /* Rotate to align with the line */
+  TP_MONO =    0x4000  /* Monospace font family */
+  TP_FMASK =   0x7000  /* Mask for font style */
+  TP_ALIGN =  -0x8000  /* Rotate to align with the line */
 )
 
 /* An object to hold a position in 2-D space */
@@ -239,7 +240,7 @@ type PVar struct {
 */
 type PToken struct {
   z []byte                   /* Pointer to the token text */
-	n int                      /* Length of the token in bytes */
+  n int                      /* Length of the token in bytes */
 
   eCode int16                /* Auxiliary code */
   eType uint8                /* The numeric parser code */
@@ -247,15 +248,15 @@ type PToken struct {
 }
 
 func (p PToken) String() string {
-	return string(p.z[:p.n])
+  return string(p.z[:p.n])
 }
 
 /* Return negative, zero, or positive if pToken is less than, equal to
 ** or greater than the zero-terminated string z[]
 */
 func pik_token_eq(pToken *PToken, z string) int {
-	c := bytencmp(pToken.z, z, pToken.n)
-	if c == 0 && len(z) > pToken.n && z[pToken.n] != 0 { c = -1 }
+  c := bytencmp(pToken.z, z, pToken.n)
+  if c == 0 && len(z) > pToken.n && z[pToken.n] != 0 { c = -1 }
   return c
 }
 
@@ -623,7 +624,7 @@ boolproperty ::= SOLID.       {p.cur.sw = p.pik_value("thickness",nil)
 
 textposition(A) ::= .   {A = 0}
 textposition(A) ::= textposition(B)
-   CENTER|LJUST|RJUST|ABOVE|BELOW|ITALIC|BOLD|ALIGNED|BIG|SMALL(F).
+   CENTER|LJUST|RJUST|ABOVE|BELOW|ITALIC|BOLD|MONO|ALIGNED|BIG|SMALL(F).
                         {A = pik_text_position(B,&F)}
 
 
@@ -899,8 +900,8 @@ var aColor = []struct{
 */
 
 var aBuiltin = []struct{
-	zName string
-	val   PNum
+  zName string
+  val   PNum
 }{
   { "arcrad",      0.25  },
   { "arrowhead",   2.0   },
@@ -1143,15 +1144,15 @@ func circleNumProp(p *Pik, pObj *PObj, pId *PToken) {
   /* For a circle, the width must equal the height and both must
   ** be twice the radius.  Enforce those constraints. */
   switch pId.eType {
-	case T_DIAMETER, T_RADIUS:
-		pObj.w = 2.0*pObj.rad
-		pObj.h = 2.0*pObj.rad
-	case T_WIDTH:
-		pObj.h = pObj.w
-		pObj.rad = 0.5*pObj.w
-	case T_HEIGHT:
-		pObj.w = pObj.h
-		pObj.rad = 0.5*pObj.w
+  case T_DIAMETER, T_RADIUS:
+    pObj.w = 2.0*pObj.rad
+    pObj.h = 2.0*pObj.rad
+  case T_WIDTH:
+    pObj.h = pObj.w
+    pObj.rad = 0.5*pObj.w
+  case T_HEIGHT:
+    pObj.w = pObj.h
+    pObj.rad = 0.5*pObj.w
   }
 }
 func circleChop(p *Pik, pObj *PObj, pPt *PPoint) PPoint {
@@ -1174,7 +1175,7 @@ func circleFit(p *Pik, pObj *PObj, w PNum, h PNum) {
   if mx>0.0 {
     pObj.rad = 0.5*mx
     pObj.w = mx
-		pObj.h = mx
+    pObj.h = mx
   }
 }
 
@@ -1248,7 +1249,7 @@ func cylinderOffset(p *Pik, pObj *PObj, cp uint8) PPoint {
 func dotInit(p *Pik, pObj *PObj) {
   pObj.rad = p.pik_value("dotrad",nil)
   pObj.h = pObj.rad*6
-	pObj.w = pObj.rad*6
+  pObj.w = pObj.rad*6
   pObj.fill = pObj.color
 }
 func dotNumProp(p *Pik, pObj *PObj, pId *PToken) {
@@ -1261,7 +1262,7 @@ func dotNumProp(p *Pik, pObj *PObj, pId *PToken) {
 }
 func dotCheck(p *Pik, pObj *PObj){
   pObj.w = 0
-	pObj.h = 0
+  pObj.h = 0
   pik_bbox_addellipse(&pObj.bbox, pObj.ptAt.x, pObj.ptAt.y,
                        pObj.rad, pObj.rad)
 }
@@ -1352,11 +1353,11 @@ func fileOffset(p *Pik, pObj *PObj, cp uint8) PPoint {
   var h2 PNum = 0.5*pObj.h
   var rx PNum = pObj.rad
   mn := h2
-	if w2<h2 {mn = w2}
+  if w2<h2 {mn = w2}
   if rx>mn { rx = mn }
   if rx<mn*0.25 { rx = mn*0.25 }
   pt.x = 0.0
-	pt.y = 0.0
+  pt.y = 0.0
   rx *= 0.5
   switch cp {
     case CP_C:
@@ -1381,7 +1382,7 @@ func fileRender(p *Pik, pObj *PObj){
   var h2 PNum = 0.5*pObj.h
   rad := pObj.rad
   pt := pObj.ptAt
-	mn := h2
+  mn := h2
   if w2<h2 { mn = w2 }
   if rad>mn { rad = mn }
   if rad<mn*0.25 { rad = mn*0.25 }
@@ -1412,17 +1413,17 @@ func lineInit(p *Pik, pObj *PObj){
   pObj.rad = p.pik_value("linerad",nil)
 }
 func lineOffset(p *Pik, pObj *PObj, cp uint8) PPoint {
-	if false { // #if 0
-		/* In legacy PIC, the .center of an unclosed line is half way between
-		 ** its .start and .end. */
-		if cp==CP_C && !pObj.bClose {
-			var out PPoint
-			out.x = 0.5*(pObj.ptEnter.x + pObj.ptExit.x) - pObj.ptAt.x
-			out.y = 0.5*(pObj.ptEnter.x + pObj.ptExit.y) - pObj.ptAt.y
-			return out
-		}
-	} // #endif
-	return boxOffset(p,pObj,cp)
+  if false { // #if 0
+    /* In legacy PIC, the .center of an unclosed line is half way between
+     ** its .start and .end. */
+    if cp==CP_C && !pObj.bClose {
+      var out PPoint
+      out.x = 0.5*(pObj.ptEnter.x + pObj.ptExit.x) - pObj.ptAt.x
+      out.y = 0.5*(pObj.ptEnter.x + pObj.ptExit.y) - pObj.ptAt.y
+      return out
+    }
+  } // #endif
+  return boxOffset(p,pObj,cp)
 }
 func lineRender(p *Pik, pObj *PObj){
   if pObj.sw>0.0 {
@@ -1444,11 +1445,11 @@ func lineRender(p *Pik, pObj *PObj){
       pObj.fill = -1.0
     }
     p.pik_append("\" ")
-		if pObj.bClose {
-			p.pik_append_style(pObj,3)
-		} else {
-			p.pik_append_style(pObj,0)
-		}
+    if pObj.bClose {
+      p.pik_append_style(pObj,3)
+    } else {
+      p.pik_append_style(pObj,0)
+    }
     p.pik_append("\" />\n")
   }
   p.pik_append_txt(pObj, nil)
@@ -1470,30 +1471,30 @@ func moveRender(p *Pik, pObj *PObj){
 func ovalInit(p *Pik, pObj *PObj){
   pObj.h = p.pik_value("ovalht",nil)
   pObj.w = p.pik_value("ovalwid",nil)
-	if pObj.h<pObj.w {
-		pObj.rad = 0.5*pObj.h
-	} else {
-		pObj.rad = 0.5*pObj.w
-	}
+  if pObj.h<pObj.w {
+    pObj.rad = 0.5*pObj.h
+  } else {
+    pObj.rad = 0.5*pObj.w
+  }
 }
 func ovalNumProp(p *Pik, pObj *PObj, pId *PToken){
   /* Always adjust the radius to be half of the smaller of
   ** the width and height. */
-	if pObj.h<pObj.w {
-		pObj.rad = 0.5*pObj.h
-	} else {
-		pObj.rad = 0.5*pObj.w
-	}
+  if pObj.h<pObj.w {
+    pObj.rad = 0.5*pObj.h
+  } else {
+    pObj.rad = 0.5*pObj.w
+  }
 }
 func ovalFit(p *Pik, pObj *PObj, w PNum, h PNum){
   if w>0 { pObj.w = w }
   if h>0 { pObj.h = h }
   if pObj.w<pObj.h { pObj.w = pObj.h }
-	if pObj.h<pObj.w {
-		pObj.rad = 0.5*pObj.h
-	} else {
-		pObj.rad = 0.5*pObj.w
-	}
+  if pObj.h<pObj.w {
+    pObj.rad = 0.5*pObj.h
+  } else {
+    pObj.rad = 0.5*pObj.w
+  }
 }
 
 
@@ -1521,9 +1522,9 @@ func radiusMidpoint(f PPoint, t PPoint, r PNum, pbMid *bool) PPoint {
   }else{
     *pbMid = false
   }
-	return PPoint{
-		x:  t.x - r*dx,
-		y: t.y - r*dy,
+  return PPoint{
+    x:  t.x - r*dx,
+    y: t.y - r*dy,
   }
 }
 func (p *Pik) radiusPath(pObj *PObj, r PNum){
@@ -1531,16 +1532,16 @@ func (p *Pik) radiusPath(pObj *PObj, r PNum){
   a := pObj.aPath
   an := a[n-1]
   isMid := false
-	iLast := n-1
-	if pObj.bClose {
-		iLast = n
-	}
+  iLast := n-1
+  if pObj.bClose {
+    iLast = n
+  }
 
   p.pik_append_xy("<path d=\"M", a[0].x, a[0].y)
   m := radiusMidpoint(a[0], a[1], r, &isMid)
   p.pik_append_xy(" L ",m.x,m.y)
   for i:=1; i<iLast; i++ {
-		an = a[0]
+    an = a[0]
     if i<n-1 { an = a[i+1]}
     m = radiusMidpoint(an,a[i],r, &isMid)
     p.pik_append_xy(" Q ",a[i].x,a[i].y)
@@ -1557,11 +1558,11 @@ func (p *Pik) radiusPath(pObj *PObj, r PNum){
     pObj.fill = -1.0
   }
   p.pik_append("\" ")
-	if pObj.bClose {
-		p.pik_append_style(pObj,3)
-	} else {
-		p.pik_append_style(pObj,0)
-	}
+  if pObj.bClose {
+    p.pik_append_style(pObj,3)
+  } else {
+    p.pik_append_style(pObj,0)
+  }
   p.pik_append("\" />\n")
 }
 func splineRender(p *Pik, pObj *PObj){
@@ -1876,8 +1877,8 @@ var ampersand_entity_re = regexp.MustCompile(`^&(?:#[0-9]{2,}|[a-zA-Z][a-zA-Z0-9
 ** `&[a-zA-Z][a-zA-Z0-9]+;`.
 */
 func pik_isentity(zText string) bool {
-	/* Note that &#nn; values nn<32d are not legal entities. */
-	return ampersand_entity_re.MatchString(zText)
+  /* Note that &#nn; values nn<32d are not legal entities. */
+  return ampersand_entity_re.MatchString(zText)
 }
 
 
@@ -1900,32 +1901,32 @@ func (p *Pik) pik_append_text(zText string, mFlags int) {
   bQSpace := mFlags&1 > 0
   bQAmp := mFlags&2 > 0
 
-	text := html_re_with_space.ReplaceAllStringFunc(zText, func(s string) string {
-		switch {
-		case s == "<":
-			return "&lt;"
-		case s == ">":
-			return "&gt;"
-		case s == " " && bQSpace:
-			return "\302\240"
-		default:
-			return s
-		}
-	})
-	if !bQAmp {
-		p.pik_append(text)
-	} else {
-		pieces := strings.Split(text, "&")
-		p.pik_append(pieces[0])
-		for _, piece := range pieces[1:] {
-			if pik_isentity("&"+piece) {
-				p.pik_append("&")
-			} else {
-				p.pik_append("&amp;")
-			}
-			p.pik_append(piece)
-		}
-	}
+  text := html_re_with_space.ReplaceAllStringFunc(zText, func(s string) string {
+    switch {
+    case s == "<":
+      return "&lt;"
+    case s == ">":
+      return "&gt;"
+    case s == " " && bQSpace:
+      return "\302\240"
+    default:
+      return s
+    }
+  })
+  if !bQAmp {
+    p.pik_append(text)
+  } else {
+    pieces := strings.Split(text, "&")
+    p.pik_append(pieces[0])
+    for _, piece := range pieces[1:] {
+      if pik_isentity("&"+piece) {
+        p.pik_append("&")
+      } else {
+        p.pik_append("&amp;")
+      }
+      p.pik_append(piece)
+    }
+  }
 }
 
 /*
@@ -1944,8 +1945,8 @@ func (p *Pik) pik_append_errtxt(zText string) {
 /* Append a PNum value
 */
 func (p *Pik) pik_append_num(z string, v PNum) {
-	p.pik_append(z)
-	p.pik_append(fmt.Sprintf("%.10g", v))
+  p.pik_append(z)
+  p.pik_append(fmt.Sprintf("%.10g", v))
 }
 
 /* Append a PPoint value  (Used for debugging only)
@@ -2028,8 +2029,8 @@ func (p *Pik) pik_append_clr(z1 string,v PNum,z2 string,bg bool) {
   } else if p.mFlags&PIKCHR_DARK_MODE != 0 {
     x = pik_color_to_dark_mode(x,bg)
   }
-	r := (x>>16) & 0xff
-	g := (x>>8) & 0xff
+  r := (x>>16) & 0xff
+  g := (x>>8) & 0xff
   b := x & 0xff
   buf := fmt.Sprintf("%srgb(%d,%d,%d)%s", z1, r, g, b, z2)
   p.pik_append(buf)
@@ -2146,7 +2147,7 @@ func pik_txt_vertical_layout(pObj *PObj) {
       ** Allow them both to float to center. */
       iSlot = 2
       aFree[0] = TP_CENTER
-			aFree[1] = TP_CENTER
+      aFree[1] = TP_CENTER
     } else {
       /* Set up the arrow so that available slots are filled from top to
       ** bottom */
@@ -2161,7 +2162,7 @@ func pik_txt_vertical_layout(pObj *PObj) {
     for i, iSlot := 0, 0; i<n; i++ {
       if (aTxt[i].eCode & TP_VMASK)==0 {
         aTxt[i].eCode |= aFree[iSlot]
-				iSlot++
+        iSlot++
       }
     }
   }
@@ -2271,10 +2272,12 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
     if pBox!=nil {
       /* If pBox is not NULL, do not draw any <text>.  Instead, just expand
       ** pBox to include the text */
-      var cw PNum = PNum(pik_text_length(t))*p.charWidth*xtraFontScale*0.01
+      var cw PNum = PNum(pik_text_length(t, t.eCode&TP_MONO != 0))*p.charWidth*xtraFontScale*0.01
       var ch PNum = p.charHeight*0.5*xtraFontScale
       var x0, y0, x1, y1 PNum  /* Boundary of text relative to pObj.ptAt */
-      if t.eCode&TP_BOLD != 0 { cw *= 1.1 }
+      if t.eCode&TP_BOLD != 0 {
+         cw *= 1.1
+      }
       if t.eCode&TP_RJUST != 0 {
         x0 = nx
         y0 = y-ch
@@ -2330,6 +2333,9 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
     if t.eCode&TP_BOLD != 0 {
       p.pik_append(" font-weight=\"bold\"")
     }
+    if t.eCode&TP_MONO != 0 {
+      p.pik_append(" font-family=\"monospace\"")
+    }
     if pObj.color>=0.0 {
       p.pik_append_clr(" fill=\"", pObj.color, "\"",false)
     }
@@ -2350,14 +2356,14 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
       }
     }
     p.pik_append(" dominant-baseline=\"central\">")
-		var z []byte
-		var nz int
-		if t.n>=2 && t.z[0]=='"' {
+    var z []byte
+    var nz int
+    if t.n>=2 && t.z[0]=='"' {
       z = t.z[1:]
-			nz = t.n-2
+      nz = t.n-2
     } else {
       z = t.z
-			nz = t.n
+      nz = t.n
     }
     for nz>0 {
       var j int
@@ -2368,9 +2374,9 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
         j++
       }
       nz -= j+1
-			if nz>0 {
-				z = z[j+1:]
-			}
+      if nz>0 {
+        z = z[j+1:]
+      }
     }
     p.pik_append("</text>\n")
   }
@@ -2418,10 +2424,10 @@ func (p *Pik) pik_error_context(pErr *PToken, nContext int){
   for iEnd=iErrPt; p.sIn.z[iEnd]!=0 && p.sIn.z[iEnd]!='\n'; iEnd++ {}
   i = iStart
   for iFirstLineno<=iLineno {
-		zLineno := fmt.Sprintf("/* %4d */  ", iFirstLineno)
-		iFirstLineno++
-		p.pik_append(zLineno)
-		for i=iStart; p.sIn.z[i]!=0 && p.sIn.z[i]!='\n'; i++ {}
+    zLineno := fmt.Sprintf("/* %4d */  ", iFirstLineno)
+    iFirstLineno++
+    p.pik_append(zLineno)
+    for i=iStart; p.sIn.z[i]!=0 && p.sIn.z[i]!='\n'; i++ {}
     p.pik_append_errtxt(string(p.sIn.z[iStart:i]))
     iStart = i+1
     p.pik_append("\n")
@@ -2477,14 +2483,14 @@ func (p *Pik) pik_error(pErr *PToken, zMsg string){
  ** Process an "assert( e1 == e2 )" statement.  Always return `nil`.
  */
 func (p *Pik) pik_assert(e1 PNum, pEq *PToken, e2 PNum) *PObj {
-	/* Convert the numbers to strings using %g for comparison.  This
-	 ** limits the precision of the comparison to account for rounding error. */
-	zE1 := fmt.Sprintf("%.6g", e1)
-	zE2 := fmt.Sprintf("%.6g", e2)
-	if zE1 != zE2 {
-		p.pik_error(pEq, fmt.Sprintf("%.50s != %.50s", zE1, zE2))
-	}
-	return nil
+  /* Convert the numbers to strings using %g for comparison.  This
+   ** limits the precision of the comparison to account for rounding error. */
+  zE1 := fmt.Sprintf("%.6g", e1)
+  zE2 := fmt.Sprintf("%.6g", e2)
+  if zE1 != zE2 {
+    p.pik_error(pEq, fmt.Sprintf("%.50s != %.50s", zE1, zE2))
+  }
+  return nil
 }
 
 /*
@@ -2492,13 +2498,13 @@ func (p *Pik) pik_assert(e1 PNum, pEq *PToken, e2 PNum) *PObj {
 */
 func (p *Pik) pik_position_assert(e1 *PPoint, pEq *PToken, e2 *PPoint) *PObj{
   /* Convert the numbers to strings using %g for comparison.  This
-	 ** limits the precision of the comparison to account for rounding error. */
-	zE1 := fmt.Sprintf("(%.6g,%.6g)", e1.x, e1.y)
-	zE2 := fmt.Sprintf("(%.6g,%.6g)", e2.x, e2.y)
-	if zE1 != zE2 {
-		p.pik_error(pEq, fmt.Sprintf("%s != %s", zE1, zE2))
-	}
-	return nil
+   ** limits the precision of the comparison to account for rounding error. */
+  zE1 := fmt.Sprintf("(%.6g,%.6g)", e1.x, e1.y)
+  zE2 := fmt.Sprintf("(%.6g,%.6g)", e2.x, e2.y)
+  if zE1 != zE2 {
+    p.pik_error(pEq, fmt.Sprintf("%s != %s", zE1, zE2))
+  }
+  return nil
 }
 
 /* Free a complete list of objects */
@@ -2531,37 +2537,37 @@ func (p *Pik) pik_elem_free(pObj *PObj){
 */
 func pik_atof(num *PToken) PNum {
   if num.n>=3 && num.z[0]=='0' && (num.z[1]=='x'||num.z[1]=='X') {
-		i, err := strconv.ParseInt(string(num.z[2:num.n]), 16, 64)
-		if err != nil {
-			return 0
-		}
-		return PNum(i)
+    i, err := strconv.ParseInt(string(num.z[2:num.n]), 16, 64)
+    if err != nil {
+      return 0
+    }
+    return PNum(i)
   }
-	factor := 1.0
+  factor := 1.0
 
-	z := num.String()
+  z := num.String()
 
-	if num.n > 2 {
-		hasSuffix := true
-		switch string(num.z[num.n-2:num.n]) {
-		case "cm": factor = 1/2.54
-		case "mm": factor = 1/25.4
-		case "px": factor = 1/96.0
-		case "pt": factor = 1/72.0
-		case "pc": factor = 1/6.0
-		case "in": factor = 1.0
-		default: hasSuffix = false
-		}
-		if hasSuffix {
-			z = z[:len(z)-2]
-		}
-	}
+  if num.n > 2 {
+    hasSuffix := true
+    switch string(num.z[num.n-2:num.n]) {
+    case "cm": factor = 1/2.54
+    case "mm": factor = 1/25.4
+    case "px": factor = 1/96.0
+    case "pt": factor = 1/72.0
+    case "pc": factor = 1/6.0
+    case "in": factor = 1.0
+    default: hasSuffix = false
+    }
+    if hasSuffix {
+      z = z[:len(z)-2]
+    }
+  }
 
   ans, err := strconv.ParseFloat(z, 64)
-	ans *= factor
-	if err != nil {
-		return 0.0
-	}
+  ans *= factor
+  if err != nil {
+    return 0.0
+  }
   return PNum(ans)
 }
 
@@ -2654,12 +2660,12 @@ func pik_bbox_addellipse(pA *PBox, x PNum, y PNum, rx PNum, ry PNum) {
 ** the new object list.
 */
 func (p *Pik) pik_elist_append(pList PList, pObj *PObj) PList {
-	if pObj == nil {
-		return pList
-	}
-	pList = append(pList, pObj)
-	p.list = pList
-	return pList
+  if pObj == nil {
+    return pList
+  }
+  pList = append(pList, pObj)
+  p.list = pList
+  return pList
 }
 
 /* Convert an object class name into a PClass pointer
@@ -2670,7 +2676,7 @@ func pik_find_class(pId *PToken) *PClass {
   last := len(aClass) - 1
   for {
     mid := (first+last)/2
-		c := strings.Compare(aClass[mid].zName, zString)
+    c := strings.Compare(aClass[mid].zName, zString)
     if c==0 {
       return &aClass[mid]
     }
@@ -2680,9 +2686,9 @@ func pik_find_class(pId *PToken) *PClass {
       last = mid - 1
     }
 
-		if first > last {
-			return nil
-		}
+    if first > last {
+      return nil
+    }
   }
 }
 
@@ -2695,9 +2701,9 @@ func pik_find_class(pId *PToken) *PClass {
 */
 func (p *Pik) pik_elem_new(pId *PToken, pStr *PToken,pSublist PList) *PObj {
   miss := false
-	if p.nErr != 0 {
-		return nil
-	}
+  if p.nErr != 0 {
+    return nil
+  }
   pNew := &PObj{}
 
   p.cur = pNew
@@ -2720,7 +2726,7 @@ func (p *Pik) pik_elem_new(pId *PToken, pStr *PToken,pSublist PList) *PObj {
   p.aTPath[0] = pNew.ptAt
   pNew.with = pNew.ptAt
   pNew.outDir = p.eDir
-	pNew.inDir = p.eDir
+  pNew.inDir = p.eDir
   pNew.iLayer = p.pik_value_int("layer", &miss)
   if miss { pNew.iLayer = 1000 }
   if pNew.iLayer<0 { pNew.iLayer = 0 }
@@ -2731,10 +2737,10 @@ func (p *Pik) pik_elem_new(pId *PToken, pStr *PToken,pSublist PList) *PObj {
     return pNew
   }
   if pStr != nil {
-		n := PToken{
-    	z: []byte("text"),
-			n: 4,
-		}
+    n := PToken{
+      z: []byte("text"),
+      n: 4,
+    }
     pNew.typ = pik_find_class(&n)
     assert( pNew.typ!=nil, "pNew.typ!=nil" )
     pNew.errTok = *pStr
@@ -2744,7 +2750,7 @@ func (p *Pik) pik_elem_new(pId *PToken, pStr *PToken,pSublist PList) *PObj {
   }
   if pId != nil {
     pNew.errTok = *pId
-		pClass := pik_find_class(pId)
+    pClass := pik_find_class(pId)
     if pClass != nil {
       pNew.typ = pClass
       pNew.sw = p.pik_value("thickness",nil)
@@ -2758,8 +2764,8 @@ func (p *Pik) pik_elem_new(pId *PToken, pStr *PToken,pSublist PList) *PObj {
     return nil
   }
   pNew.typ = &noopClass
-	pNew.ptExit = pNew.ptAt
-	pNew.ptEnter = pNew.ptAt
+  pNew.ptExit = pNew.ptAt
+  pNew.ptEnter = pNew.ptAt
   return pNew
 }
 
@@ -2784,14 +2790,14 @@ func (p *Pik) pik_add_macro(
 ){
   pNew := p.pik_find_macro(pId)
   if pNew==nil {
-		pNew = &PMacro{
-			pNext: p.pMacros,
-			macroName: *pId,
-		}
+    pNew = &PMacro{
+      pNext: p.pMacros,
+      macroName: *pId,
+    }
     p.pMacros = pNew
   }
   pNew.macroBody.z = pCode.z[1:]
-	pNew.macroBody.n = pCode.n-2
+  pNew.macroBody.n = pCode.n-2
   pNew.inUse = false
 }
 
@@ -2903,21 +2909,21 @@ func (p *Pik) pik_param_ok(
 func (p *Pik) pik_set_numprop(pId *PToken, pVal *PRel) {
   pObj := p.cur
   switch pId.eType {
-	case T_HEIGHT:
-		if p.pik_param_ok(pObj, pId, A_HEIGHT) { return }
-		pObj.h = pObj.h*pVal.rRel + pVal.rAbs
-	case T_WIDTH:
-		if p.pik_param_ok(pObj, pId, A_WIDTH) { return }
-		pObj.w = pObj.w*pVal.rRel + pVal.rAbs
-	case T_RADIUS:
-		if p.pik_param_ok(pObj, pId, A_RADIUS) { return }
-		pObj.rad = pObj.rad*pVal.rRel + pVal.rAbs
-	case T_DIAMETER:
-		if p.pik_param_ok(pObj, pId, A_RADIUS) { return }
-		pObj.rad = pObj.rad*pVal.rRel + 0.5*pVal.rAbs /* diam it 2x rad */
-	case T_THICKNESS:
-		if p.pik_param_ok(pObj, pId, A_THICKNESS) { return }
-		pObj.sw = pObj.sw*pVal.rRel + pVal.rAbs
+  case T_HEIGHT:
+    if p.pik_param_ok(pObj, pId, A_HEIGHT) { return }
+    pObj.h = pObj.h*pVal.rRel + pVal.rAbs
+  case T_WIDTH:
+    if p.pik_param_ok(pObj, pId, A_WIDTH) { return }
+    pObj.w = pObj.w*pVal.rRel + pVal.rAbs
+  case T_RADIUS:
+    if p.pik_param_ok(pObj, pId, A_RADIUS) { return }
+    pObj.rad = pObj.rad*pVal.rRel + pVal.rAbs
+  case T_DIAMETER:
+    if p.pik_param_ok(pObj, pId, A_RADIUS) { return }
+    pObj.rad = pObj.rad*pVal.rRel + 0.5*pVal.rAbs /* diam it 2x rad */
+  case T_THICKNESS:
+    if p.pik_param_ok(pObj, pId, A_THICKNESS) { return }
+    pObj.sw = pObj.sw*pVal.rRel + pVal.rAbs
   }
   if pObj.typ.xNumProp != nil {
     pObj.typ.xNumProp(p, pObj, pId)
@@ -2930,13 +2936,13 @@ func (p *Pik) pik_set_numprop(pId *PToken, pVal *PRel) {
 func (p *Pik) pik_set_clrprop(pId *PToken, rClr PNum) {
   pObj := p.cur
   switch pId.eType {
-	case T_FILL:
-		if p.pik_param_ok(pObj, pId, A_FILL) { return }
-		pObj.fill = rClr
-	case T_COLOR:
-		if p.pik_param_ok(pObj, pId, A_COLOR) { return }
-		pObj.color = rClr
-		break
+  case T_FILL:
+    if p.pik_param_ok(pObj, pId, A_FILL) { return }
+    pObj.fill = rClr
+  case T_COLOR:
+    if p.pik_param_ok(pObj, pId, A_COLOR) { return }
+    pObj.color = rClr
+    break
   }
   if pObj.typ.xNumProp != nil {
     pObj.typ.xNumProp(p, pObj, pId)
@@ -2952,20 +2958,20 @@ func (p *Pik) pik_set_clrprop(pId *PToken, rClr PNum) {
 func (p *Pik) pik_set_dashed(pId *PToken, pVal *PNum) {
   pObj := p.cur
   switch pId.eType {
-	case T_DOTTED:
-		if pVal != nil {
-			pObj.dotted = *pVal
-		} else {
-			pObj.dotted = p.pik_value("dashwid",nil)
-		}
-		pObj.dashed = 0.0
-	case T_DASHED:
-		if pVal != nil {
-			pObj.dashed = *pVal
-		} else {
-			pObj.dashed = p.pik_value("dashwid",nil)
-		}
-		pObj.dotted = 0.0
+  case T_DOTTED:
+    if pVal != nil {
+      pObj.dotted = *pVal
+    } else {
+      pObj.dotted = p.pik_value("dashwid",nil)
+    }
+    pObj.dashed = 0.0
+  case T_DASHED:
+    if pVal != nil {
+      pObj.dashed = *pVal
+    } else {
+      pObj.dashed = p.pik_value("dashwid",nil)
+    }
+    pObj.dotted = 0.0
   }
 }
 
@@ -3006,7 +3012,7 @@ func (p *Pik) pik_next_rpath(pErr *PToken) int{
     return n
   }
   n++
-	p.nTPath++
+  p.nTPath++
   p.aTPath[n] = p.aTPath[n-1]
   p.mTPath = 0
   return n
@@ -3032,27 +3038,27 @@ func (p *Pik) pik_add_direction(pDir *PToken, pVal *PRel) {
     n = p.pik_next_rpath(pDir)
     p.thenFlag = false
   }
-	dir := p.eDir
-	if pDir != nil {
-		dir = uint8(pDir.eCode)
-	}
+  dir := p.eDir
+  if pDir != nil {
+    dir = uint8(pDir.eCode)
+  }
   switch dir {
-	case DIR_UP:
-		if p.mTPath&2 > 0 { n = p.pik_next_rpath(pDir) }
-		p.aTPath[n].y += pVal.rAbs + pObj.h*pVal.rRel
-		p.mTPath |= 2
-	case DIR_DOWN:
-		if p.mTPath&2 > 0 { n = p.pik_next_rpath(pDir) }
-		p.aTPath[n].y -= pVal.rAbs + pObj.h*pVal.rRel
-		p.mTPath |= 2
-	case DIR_RIGHT:
-		if p.mTPath&1 > 0 { n = p.pik_next_rpath(pDir) }
-		p.aTPath[n].x += pVal.rAbs + pObj.w*pVal.rRel
-		p.mTPath |= 1
-	case DIR_LEFT:
-		if p.mTPath&1 > 0 { n = p.pik_next_rpath(pDir) }
-		p.aTPath[n].x -= pVal.rAbs + pObj.w*pVal.rRel
-		p.mTPath |= 1
+  case DIR_UP:
+    if p.mTPath&2 > 0 { n = p.pik_next_rpath(pDir) }
+    p.aTPath[n].y += pVal.rAbs + pObj.h*pVal.rRel
+    p.mTPath |= 2
+  case DIR_DOWN:
+    if p.mTPath&2 > 0 { n = p.pik_next_rpath(pDir) }
+    p.aTPath[n].y -= pVal.rAbs + pObj.h*pVal.rRel
+    p.mTPath |= 2
+  case DIR_RIGHT:
+    if p.mTPath&1 > 0 { n = p.pik_next_rpath(pDir) }
+    p.aTPath[n].x += pVal.rAbs + pObj.w*pVal.rRel
+    p.mTPath |= 1
+  case DIR_LEFT:
+    if p.mTPath&1 > 0 { n = p.pik_next_rpath(pDir) }
+    p.aTPath[n].x -= pVal.rAbs + pObj.w*pVal.rRel
+    p.mTPath |= 1
   }
   pObj.outDir = dir
 }
@@ -3077,7 +3083,7 @@ func (p *Pik) pik_move_hdg(
     return
   }
   p.pik_reset_samepath()
-	n := 0
+  n := 0
   for n < 1 {
     n = p.pik_next_rpath(pErr)
   }
@@ -3113,29 +3119,29 @@ func (p *Pik) pik_move_hdg(
  ** the point specified by pPoint.
  */
 func (p *Pik) pik_evenwith(pDir *PToken, pPlace *PPoint) {
-	pObj := p.cur
+  pObj := p.cur
 
-	if !pObj.typ.isLine {
-		p.pik_error(pDir, "use with line-oriented objects only")
-		return
-	}
-	p.pik_reset_samepath()
-	n := p.nTPath - 1
-	if p.thenFlag || p.mTPath==3 || n==0 {
-		n = p.pik_next_rpath(pDir)
-		p.thenFlag = false
-	}
-	switch pDir.eCode {
+  if !pObj.typ.isLine {
+    p.pik_error(pDir, "use with line-oriented objects only")
+    return
+  }
+  p.pik_reset_samepath()
+  n := p.nTPath - 1
+  if p.thenFlag || p.mTPath==3 || n==0 {
+    n = p.pik_next_rpath(pDir)
+    p.thenFlag = false
+  }
+  switch pDir.eCode {
   case DIR_DOWN, DIR_UP:
-		if p.mTPath&2 != 0 { n = p.pik_next_rpath(pDir) }
-		p.aTPath[n].y = pPlace.y
-		p.mTPath |= 2
+    if p.mTPath&2 != 0 { n = p.pik_next_rpath(pDir) }
+    p.aTPath[n].y = pPlace.y
+    p.mTPath |= 2
   case DIR_RIGHT, DIR_LEFT:
-		if p.mTPath&1 != 0 { n = p.pik_next_rpath(pDir) }
-		p.aTPath[n].x = pPlace.x
-		p.mTPath |= 1
-	}
-	pObj.outDir = uint8(pDir.eCode)
+    if p.mTPath&1 != 0 { n = p.pik_next_rpath(pDir) }
+    p.aTPath[n].x = pPlace.x
+    p.mTPath |= 1
+  }
+  pObj.outDir = uint8(pDir.eCode)
 }
 
 /* If the last referenced object is centered at point pPt then return
@@ -3242,7 +3248,7 @@ func (p *Pik) pik_behind(pOther *PObj) {
 /* Set the "at" of an object
 */
 func (p *Pik) pik_set_at(pEdge *PToken, pAt *PPoint, pErrTok *PToken) {
-	eDirToCp := []uint8{CP_E, CP_S, CP_W, CP_N}
+  eDirToCp := []uint8{CP_E, CP_S, CP_W, CP_N}
   if p.nErr != 0 { return }
   pObj := p.cur
 
@@ -3255,15 +3261,15 @@ func (p *Pik) pik_set_at(pEdge *PToken, pAt *PPoint, pErrTok *PToken) {
     return
   }
   pObj.mProp |= A_AT
-	pObj.eWith = CP_C
-	if pEdge != nil {
-		pObj.eWith = pEdge.eEdge
-	}
+  pObj.eWith = CP_C
+  if pEdge != nil {
+    pObj.eWith = pEdge.eEdge
+  }
   if pObj.eWith>=CP_END {
-		dir := pObj.inDir
-		if pObj.eWith == CP_END {
-			dir = pObj.outDir
-		}
+    dir := pObj.inDir
+    if pObj.eWith == CP_END {
+      dir = pObj.outDir
+    }
     pObj.eWith = eDirToCp[int(dir)]
   }
   pObj.with = *pAt
@@ -3279,16 +3285,16 @@ func (p *Pik) pik_add_txt(pTxt *PToken, iPos int16) {
     return
   }
   pT := &pObj.aTxt[pObj.nTxt]
-	pObj.nTxt++
+  pObj.nTxt++
   *pT = *pTxt
   pT.eCode = iPos
 }
 
 /* Merge "text-position" flags
 */
-	func pik_text_position(iPrev int, pFlag *PToken) int {
-		iRes := iPrev
-		switch pFlag.eType {
+  func pik_text_position(iPrev int, pFlag *PToken) int {
+    iRes := iPrev
+    switch pFlag.eType {
     case T_LJUST:    iRes = (iRes&^TP_JMASK) | TP_LJUST
     case T_RJUST:    iRes = (iRes&^TP_JMASK) | TP_RJUST
     case T_ABOVE:    iRes = (iRes&^TP_VMASK) | TP_ABOVE
@@ -3296,8 +3302,9 @@ func (p *Pik) pik_add_txt(pTxt *PToken, iPos int16) {
     case T_BELOW:    iRes = (iRes&^TP_VMASK) | TP_BELOW
     case T_ITALIC:   iRes |= TP_ITALIC
     case T_BOLD:     iRes |= TP_BOLD
+    case T_MONO:     iRes |= TP_MONO
     case T_ALIGNED:  iRes |= TP_ALIGN
-		case T_BIG:      if iRes&TP_BIG != 0 { iRes |= TP_XTRA }	else {iRes = (iRes &^TP_SZMASK)|TP_BIG }
+    case T_BIG:      if iRes&TP_BIG != 0 { iRes |= TP_XTRA }  else {iRes = (iRes &^TP_SZMASK)|TP_BIG }
     case T_SMALL:    if iRes&TP_SMALL != 0 { iRes |= TP_XTRA } else { iRes = (iRes &^TP_SZMASK)|TP_SMALL }
   }
   return iRes
@@ -3428,35 +3435,46 @@ var awChar = []byte{
 ** "&lt;" as a single character.  Multi-byte UTF8 characters count
 ** as a single character.
 **
-** Attempt to scale the answer by the actual characters seen.  Wide
-** characters count more than narrow characters.  But the widths are
-** only guesses.
+** Unless using a monospaced font, attempt to scale the answer by
+** the actual characters seen.  Wide characters count more than
+** narrow characters. But the widths are only guesses.
 */
-func pik_text_length(pToken PToken) int {
+func pik_text_length(pToken PToken, isMonospace bool) int {
+  const stdAvg, monoAvg = 100, 82
   n := pToken.n
   z := pToken.z
-	cnt := 0
+  cnt := 0
   for j:=1; j<n-1; j++ {
     c := z[j]
     if c=='\\' && z[j+1]!='&' {
-			j++
+      j++
       c = z[j]
     } else if c=='&' {
       var k int
       for k=j+1; k<j+7 && z[k]!=0 && z[k]!=';'; k++ {}
       if z[k]==';' { j = k }
-      cnt += 150
+      if isMonospace {
+        cnt += monoAvg * 3 / 2
+      } else {
+        cnt += stdAvg * 3 / 2
+      }
       continue
     }
     if (c & 0xc0)==0xc0 {
       for j+1<n-1 && (z[j+1]&0xc0)==0x80 { j++ }
-      cnt += 100
+      if isMonospace {
+        cnt += monoAvg
+      } else {
+        cnt += stdAvg
+      }
       continue
     }
-    if c>=0x20 && c<=0x7e {
+    if isMonospace {
+      cnt += monoAvg
+    } else if c>=0x20 && c<=0x7e {
       cnt += int(awChar[int(c-0x20)])
     } else {
-      cnt += 100
+      cnt += stdAvg
     }
   }
   return cnt
@@ -3497,17 +3515,17 @@ func (p *Pik) pik_size_to_fit(pFit *PToken, eWhich int) {
   pik_bbox_init(&bbox)
   p.pik_compute_layout_settings()
   p.pik_append_txt(pObj, &bbox)
-	if eWhich&1 != 0 {
-		w = (bbox.ne.x - bbox.sw.x) + p.charWidth
-	}
+  if eWhich&1 != 0 {
+    w = (bbox.ne.x - bbox.sw.x) + p.charWidth
+  }
   if eWhich&2 != 0 {
     var h1, h2 PNum
     h1 = bbox.ne.y - pObj.ptAt.y
     h2 = pObj.ptAt.y - bbox.sw.y
-		hmax := h1
-		if h1 < h2 {
-			hmax = h2
-		}
+    hmax := h1
+    if h1 < h2 {
+      hmax = h2
+    }
     h = 2.0*hmax + 0.5*p.charHeight
   } else {
     h = 0
@@ -3526,16 +3544,16 @@ func (p *Pik) pik_set_var(pId *PToken, val PNum, pOp *PToken) {
   pVar := p.pVar
   for pVar != nil {
     if pik_token_eq(pId,pVar.zName)==0 {
-			break
-		}
+      break
+    }
     pVar = pVar.pNext
   }
   if pVar==nil {
-		pVar = &PVar{
-			zName: pId.String(),
-			pNext: p.pVar,
-			val: p.pik_value(pId.String(), nil),
-		}
+    pVar = &PVar{
+      zName: pId.String(),
+      pNext: p.pVar,
+      val: p.pik_value(pId.String(), nil),
+    }
     p.pVar = pVar
   }
   switch pOp.eCode {
@@ -3557,16 +3575,16 @@ func (p *Pik) pik_set_var(pId *PToken, val PNum, pOp *PToken) {
 ** Round a PNum into the nearest integer
 */
 func pik_round(v PNum) int {
-	switch {
+  switch {
   case math.IsNaN(v):
-		return 0
-	case v < -2147483647:
-		return (-2147483647-1)
+    return 0
+  case v < -2147483647:
+    return (-2147483647-1)
   case v >= 2147483647:
-		return 2147483647
-	default:
-		return int(v+math.Copysign(1e-15,v))
-	}
+    return 2147483647
+  default:
+    return int(v+math.Copysign(1e-15,v))
+  }
 }
 
 /*
@@ -3585,7 +3603,7 @@ func pik_round(v PNum) int {
 */
 func (p *Pik) pik_value(z string, pMiss *bool) PNum{
   for pVar:=p.pVar ; pVar != nil; pVar=pVar.pNext {
-		if pVar.zName == z {
+    if pVar.zName == z {
       return pVar.val
     }
   }
@@ -3593,15 +3611,15 @@ func (p *Pik) pik_value(z string, pMiss *bool) PNum{
   last := len(aBuiltin)-1
   for first<=last {
     mid := (first+last)/2
-		zName := aBuiltin[mid].zName
+    zName := aBuiltin[mid].zName
 
-		if zName == z {
-			return aBuiltin[mid].val
-		} else if z > zName {
-			first = mid+1
-		} else {
-			last = mid-1
-		}
+    if zName == z {
+      return aBuiltin[mid].val
+    } else if z > zName {
+      first = mid+1
+    } else {
+      last = mid-1
+    }
   }
   if pMiss != nil { *pMiss = true }
   return 0.0
@@ -3624,11 +3642,11 @@ func (p *Pik) pik_value_int(z string, pMiss *bool) int{
 func (p *Pik) pik_lookup_color(pId *PToken) PNum {
   first := 0
   last := len(aColor)-1
-	zId := strings.ToLower(pId.String())
+  zId := strings.ToLower(pId.String())
   for first<=last {
     mid := (first+last)/2
     zClr := strings.ToLower(aColor[mid].zName)
-		c := strings.Compare(zId, zClr)
+    c := strings.Compare(zId, zClr)
 
     if c==0 { return PNum(aColor[mid].val) }
     if c>0 {
@@ -3666,19 +3684,19 @@ func (p *Pik) pik_get_var(pId *PToken) PNum {
  */
 func (p *Pik) pik_nth_value(pNth *PToken) int16 {
   s := pNth.String()
-	if s == "first" {
-		return 1
-	}
+  if s == "first" {
+    return 1
+  }
 
-	i, err := strconv.Atoi(s[:len(s)-2])
-	if err != nil {
-		p.pik_error(pNth, "value can't be parsed as a number")
-	}
-	if i>1000 {
-		p.pik_error(pNth, "value too big - max '1000th'")
-		i = 1
-	}
-	return int16(i)
+  i, err := strconv.Atoi(s[:len(s)-2])
+  if err != nil {
+    p.pik_error(pNth, "value can't be parsed as a number")
+  }
+  if i>1000 {
+    p.pik_error(pNth, "value too big - max '1000th'")
+    i = 1
+  }
+  return int16(i)
 }
 
 /* Search for the NTH object.
@@ -3768,7 +3786,7 @@ func (p *Pik) pik_find_byname(pBasis *PObj, pName *PToken) *PObj {
   for i:=len(pList)-1; i>=0; i-- {
     pObj := pList[i]
     for j:=0; j<int(pObj.nTxt); j++ {
-			t := pObj.aTxt[j].n
+      t := pObj.aTxt[j].n
       if t==pName.n+2 && bytesEq(pObj.aTxt[j].z[1:t-1], pName.z[:pName.n]) {
         p.lastRef = pObj
         return pObj
@@ -3787,7 +3805,7 @@ func (p *Pik) pik_same(pOther *PObj, pErrTok *PToken) {
   pObj := p.cur
   if p.nErr != 0 { return }
   if pOther==nil {
-		var i int
+    var i int
     for i = len(p.list)-1; i >= 0; i-- {
       pOther = p.list[i]
       if pOther.typ==pObj.typ { break }
@@ -3805,7 +3823,7 @@ func (p *Pik) pik_same(pOther *PObj, pErrTok *PToken) {
       p.aTPath[i].x = pOther.aPath[i].x + dx
       p.aTPath[i].y = pOther.aPath[i].y + dy
     }
-		p.nTPath = pOther.nPath
+    p.nTPath = pOther.nPath
     p.mTPath = 3
     p.samePath = true
   }
@@ -3885,7 +3903,7 @@ func pik_position_at_angle(dist PNum, r PNum, pt PPoint)  PPoint {
 /* Return the coordinates for the n-th vertex of a line.
 */
 func (p *Pik) pik_nth_vertex(pNth *PToken, pErr *PToken, pObj *PObj) PPoint {
-	var n int
+  var n int
   zero := PPoint{}
   if p.nErr != 0 || pObj==nil { return p.aTPath[0] }
   if !pObj.typ.isLine {
@@ -3931,20 +3949,20 @@ func pik_property_of(pObj *PObj, pProp *PToken) PNum {
 func (p *Pik) pik_func(pFunc *PToken, x PNum, y PNum) PNum {
   var v PNum
   switch pFunc.eCode {
-	case FN_ABS:  v = x; if v < 0 { v = -x }
-	case FN_COS:  v = math.Cos(x)
-	case FN_INT:  v = math.Trunc(x)
-	case FN_SIN:  v = math.Sin(x)
-	case FN_SQRT:
-		if x<0.0 {
-			p.pik_error(pFunc, "sqrt of negative value")
-			v = 0.0
-		}else{
-			v = math.Sqrt(x)
-		}
-	case FN_MAX:  if x>y { v=x } else { v=y }
-	case FN_MIN:  if x<y { v=x } else { v=y }
-	default:      v = 0.0
+  case FN_ABS:  v = x; if v < 0 { v = -x }
+  case FN_COS:  v = math.Cos(x)
+  case FN_INT:  v = math.Trunc(x)
+  case FN_SIN:  v = math.Sin(x)
+  case FN_SQRT:
+    if x<0.0 {
+      p.pik_error(pFunc, "sqrt of negative value")
+      v = 0.0
+    }else{
+      v = math.Sqrt(x)
+    }
+  case FN_MAX:  if x>y { v=x } else { v=y }
+  case FN_MIN:  if x<y { v=x } else { v=y }
+  default:      v = 0.0
   }
   return v
 }
@@ -3968,9 +3986,9 @@ func pik_find_chopper(pList PList, pCenter *PPoint, pOther *PPoint) *PObj {
   for i:=len(pList)-1; i>=0; i-- {
     pObj := pList[i]
     if pObj.typ.xChop!=nil &&
-			pObj.ptAt.x==pCenter.x &&
-			pObj.ptAt.y==pCenter.y &&
-			!pik_bbox_contains_point(&pObj.bbox, pOther) {
+      pObj.ptAt.x==pCenter.x &&
+      pObj.ptAt.y==pCenter.y &&
+      !pik_bbox_contains_point(&pObj.bbox, pOther) {
       return pObj
     } else if pObj.pSublist != nil {
       pObj = pik_find_chopper(pObj.pSublist,pCenter,pOther)
@@ -4048,10 +4066,10 @@ func (p *Pik) pik_after_adding_attributes(pObj *PObj) {
       case DIR_UP:    p.aTPath[1].y += pObj.h
     }
     if pObj.typ.zName=="arc" {
-			add := uint8(3)
-			if pObj.cw {
-				add = 1
-			}
+      add := uint8(3)
+      if pObj.cw {
+        add = 1
+      }
       pObj.outDir = (pObj.inDir + add)%4
       p.eDir = pObj.outDir
       switch pObj.outDir {
@@ -4076,9 +4094,9 @@ func (p *Pik) pik_after_adding_attributes(pObj *PObj) {
   ** point (ptAt) and path for the object
   */
   if pObj.typ.isLine {
-		pObj.aPath = make([]PPoint, p.nTPath)
-		pObj.nPath = p.nTPath
-		copy(pObj.aPath, p.aTPath[:p.nTPath])
+    pObj.aPath = make([]PPoint, p.nTPath)
+    pObj.nPath = p.nTPath
+    copy(pObj.aPath, p.aTPath[:p.nTPath])
 
     /* "chop" processing:
     ** If the line goes to the center of an object with an
@@ -4156,7 +4174,7 @@ func (p *Pik) pik_elem_render(pObj *PObj) {
   p.pik_append_text(pObj.typ.zName, 0)
   if pObj.nTxt != 0 {
     p.pik_append(" \"")
-		z := pObj.aTxt[0]
+    z := pObj.aTxt[0]
     p.pik_append_text(string(z.z[1:z.n-1]), 1)
     p.pik_append("\"")
   }
@@ -4179,7 +4197,7 @@ func (p *Pik) pik_elem_render(pObj *PObj) {
 */
 func (p *Pik) pik_elist_render(pList PList) {
   var iNextLayer, iThisLayer int
-	bMoreToDo := true
+  bMoreToDo := true
   mDebug := p.pik_value_int("debug", nil)
   for bMoreToDo {
     bMoreToDo = false
@@ -4223,7 +4241,7 @@ func (p *Pik) pik_elist_render(pList PList) {
       if pObj.zName == "" { continue }
       dot.ptAt = pObj.ptAt
       dot.aTxt[0].z = []byte(pObj.zName)
-			dot.aTxt[0].n = len(dot.aTxt[0].z)
+      dot.aTxt[0].n = len(dot.aTxt[0].z)
       dotRender(p, &dot)
     }
   }
@@ -4277,15 +4295,15 @@ func (p *Pik) pik_compute_layout_settings() {
 ** Delete the input object_list before returnning.
 */
 func (p *Pik) pik_render(pList PList) {
-	if pList==nil {return}
-	if p.nErr==0 {
-		var (
-			thickness PNum  /* Stroke width */
-			margin PNum     /* Extra bounding box margin */
-			w, h PNum       /* Drawing width and height */
-			wArrow PNum
-			pikScale PNum     /* Value of the "scale" variable */
-		)
+  if pList==nil {return}
+  if p.nErr==0 {
+    var (
+      thickness PNum  /* Stroke width */
+      margin PNum     /* Extra bounding box margin */
+      w, h PNum       /* Drawing width and height */
+      wArrow PNum
+      pikScale PNum     /* Value of the "scale" variable */
+    )
 
     /* Set up rendering parameters */
     p.pik_compute_layout_settings()
@@ -4299,7 +4317,7 @@ func (p *Pik) pik_render(pList PList) {
     if miss {
       var t PToken
       t.z = []byte("fgcolor")
-			t.n = 7
+      t.n = 7
       p.fgcolor = pik_round((*Pik)(nil).pik_lookup_color(&t))
     }
     miss = false
@@ -4307,7 +4325,7 @@ func (p *Pik) pik_render(pList PList) {
     if miss {
       var t PToken
       t.z = []byte("bgcolor")
-			t.n = 7
+      t.n = 7
       p.bgcolor = pik_round((*Pik)(nil).pik_lookup_color(&t))
     }
 
@@ -4361,7 +4379,7 @@ func (p *Pik) pik_render(pList PList) {
 */
 type PikWord struct {
   zWord string /* Text of the keyword */
-	//TODO(zellyn): do we need this?
+  //TODO(zellyn): do we need this?
   nChar uint8  /* Length of keyword text in bytes */
   eType uint8  /* Token code */
   eCode uint8  /* Extra code for the token */
@@ -4422,6 +4440,8 @@ var pik_keywords = []PikWord{
   { "ljust",      5,   T_LJUST,     0,         0        },
   { "max",        3,   T_FUNC2,     FN_MAX,    0        },
   { "min",        3,   T_FUNC2,     FN_MIN,    0        },
+  { "mono",       4,   T_MONO,      0,         0        },
+  { "monospace",  9,   T_MONO,      0,         0        },
   { "n",          1,   T_EDGEPT,    0,         CP_N     },
   { "ne",         2,   T_EDGEPT,    0,         CP_NE    },
   { "north",      5,   T_EDGEPT,    0,         CP_N     },
@@ -4477,7 +4497,7 @@ func pik_find_word(
   last := len(aList) - 1
   for first<=last {
     mid := (first + last)/2
-		c := strings.Compare(zIn, aList[mid].zWord)
+    c := strings.Compare(zIn, aList[mid].zWord)
     if c==0 {
       return &aList[mid]
     }
@@ -4501,14 +4521,14 @@ func pik_breakpoint(z []byte) {
 
 
 var aEntity = []struct{
-	eCode int            /* Corresponding token code */
-	zEntity string       /* Name of the HTML entity */
+  eCode int            /* Corresponding token code */
+  zEntity string       /* Name of the HTML entity */
 }{
-	{ T_RARROW,  "&rarr;"           },   /* Same as . */
-	{ T_RARROW,  "&rightarrow;"     },   /* Same as . */
-	{ T_LARROW,  "&larr;"           },   /* Same as <- */
-	{ T_LARROW,  "&leftarrow;"      },   /* Same as <- */
-	{ T_LRARROW, "&leftrightarrow;" },   /* Same as <. */
+  { T_RARROW,  "&rarr;"           },   /* Same as . */
+  { T_RARROW,  "&rightarrow;"     },   /* Same as . */
+  { T_LARROW,  "&larr;"           },   /* Same as <- */
+  { T_LARROW,  "&leftarrow;"      },   /* Same as <- */
+  { T_LRARROW, "&leftrightarrow;" },   /* Same as <. */
 }
 
 /*
@@ -4517,337 +4537,337 @@ var aEntity = []struct{
 ** pToken object as appropriate.
 */
 func pik_token_length(pToken *PToken, bAllowCodeBlock bool) int {
-	z := pToken.z
-	var i int
-	switch z[0] {
-	case '\\':
-		pToken.eType = T_WHITESPACE
-		for i=1; (z[i]=='\r' || z[i]==' ' || z[i]=='\t'); i++ {}
-		if z[i]=='\n' { return i+1 }
-		pToken.eType = T_ERROR
-		return 1
+  z := pToken.z
+  var i int
+  switch z[0] {
+  case '\\':
+    pToken.eType = T_WHITESPACE
+    for i=1; (z[i]=='\r' || z[i]==' ' || z[i]=='\t'); i++ {}
+    if z[i]=='\n' { return i+1 }
+    pToken.eType = T_ERROR
+    return 1
 
-	case ';', '\n':
-		pToken.eType = T_EOL
-		return 1
+  case ';', '\n':
+    pToken.eType = T_EOL
+    return 1
 
-	case '"':
-		for i=1; z[i]!=0; i++ {
-			c := z[i]
-			if c=='\\' {
-				if z[i+1]==0 { break }
-				i++
-				continue
-			}
-			if c=='"' {
-				pToken.eType = T_STRING
-				return i+1
-			}
-		}
-		pToken.eType = T_ERROR
-		return i
+  case '"':
+    for i=1; z[i]!=0; i++ {
+      c := z[i]
+      if c=='\\' {
+        if z[i+1]==0 { break }
+        i++
+        continue
+      }
+      if c=='"' {
+        pToken.eType = T_STRING
+        return i+1
+      }
+    }
+    pToken.eType = T_ERROR
+    return i
 
-	case ' ', '\t', '\f', '\r':
-		for i=1; z[i]==' ' || z[i]=='\t' || z[i]=='\r' || z[i]=='\f'; i++ {}
-		pToken.eType = T_WHITESPACE
-		return i
+  case ' ', '\t', '\f', '\r':
+    for i=1; z[i]==' ' || z[i]=='\t' || z[i]=='\r' || z[i]=='\f'; i++ {}
+    pToken.eType = T_WHITESPACE
+    return i
 
-	case '#':
-		for i=1; z[i] != 0 && z[i] != '\n'; i++ {}
-		pToken.eType = T_WHITESPACE
-		/* If the comment is "#breakpoint" then invoke the pik_breakpoint()
-		 ** routine.  The pik_breakpoint() routie is a no-op that serves as
-		 ** a convenient place to set a gdb breakpoint when debugging. */
+  case '#':
+    for i=1; z[i] != 0 && z[i] != '\n'; i++ {}
+    pToken.eType = T_WHITESPACE
+    /* If the comment is "#breakpoint" then invoke the pik_breakpoint()
+     ** routine.  The pik_breakpoint() routie is a no-op that serves as
+     ** a convenient place to set a gdb breakpoint when debugging. */
 
-		if i >= 11 && string(z[:11]) == "#breakpoint" {
-			pik_breakpoint(z)
-		}
-		return i
+    if i >= 11 && string(z[:11]) == "#breakpoint" {
+      pik_breakpoint(z)
+    }
+    return i
 
-	case '/':
-		if z[1]=='*' {
-			for i=2; z[i] != 0 && (z[i]!='*' || z[i+1]!='/'); i++ {}
-			if z[i]=='*' {
-				pToken.eType = T_WHITESPACE
-				return i+2
-			} else {
-				pToken.eType = T_ERROR
-				return i
-			}
-		} else if z[1]=='/' {
-			for i=2; z[i]!=0 && z[i]!='\n'; i++ {}
-			pToken.eType = T_WHITESPACE
-			return i
-		} else if  z[1]=='=' {
-			pToken.eType = T_ASSIGN
-			pToken.eCode = T_SLASH
-			return 2
-		} else {
-			pToken.eType = T_SLASH
-			return 1
-		}
+  case '/':
+    if z[1]=='*' {
+      for i=2; z[i] != 0 && (z[i]!='*' || z[i+1]!='/'); i++ {}
+      if z[i]=='*' {
+        pToken.eType = T_WHITESPACE
+        return i+2
+      } else {
+        pToken.eType = T_ERROR
+        return i
+      }
+    } else if z[1]=='/' {
+      for i=2; z[i]!=0 && z[i]!='\n'; i++ {}
+      pToken.eType = T_WHITESPACE
+      return i
+    } else if  z[1]=='=' {
+      pToken.eType = T_ASSIGN
+      pToken.eCode = T_SLASH
+      return 2
+    } else {
+      pToken.eType = T_SLASH
+      return 1
+    }
 
-	case '+':
-		if z[1]=='=' {
-			pToken.eType = T_ASSIGN
-			pToken.eCode = T_PLUS
-			return 2
-		}
-		pToken.eType = T_PLUS
-		return 1
+  case '+':
+    if z[1]=='=' {
+      pToken.eType = T_ASSIGN
+      pToken.eCode = T_PLUS
+      return 2
+    }
+    pToken.eType = T_PLUS
+    return 1
 
-	case '*':
-		if z[1]=='=' {
-			pToken.eType = T_ASSIGN
-			pToken.eCode = T_STAR
-			return 2
-		}
-		pToken.eType = T_STAR
-		return 1
+  case '*':
+    if z[1]=='=' {
+      pToken.eType = T_ASSIGN
+      pToken.eCode = T_STAR
+      return 2
+    }
+    pToken.eType = T_STAR
+    return 1
 
-	case '%': pToken.eType = T_PERCENT; return 1
-	case '(': pToken.eType = T_LP;      return 1
-	case ')': pToken.eType = T_RP;      return 1
-	case '[': pToken.eType = T_LB;      return 1
-	case ']': pToken.eType = T_RB;      return 1
-	case ',': pToken.eType = T_COMMA;   return 1
-	case ':': pToken.eType = T_COLON;   return 1
-	case '>': pToken.eType = T_GT;      return 1
-	case '=':
-		if z[1]=='=' {
-			pToken.eType = T_EQ
-			return 2
-		}
-		pToken.eType = T_ASSIGN
-		pToken.eCode = T_ASSIGN
-		return 1
+  case '%': pToken.eType = T_PERCENT; return 1
+  case '(': pToken.eType = T_LP;      return 1
+  case ')': pToken.eType = T_RP;      return 1
+  case '[': pToken.eType = T_LB;      return 1
+  case ']': pToken.eType = T_RB;      return 1
+  case ',': pToken.eType = T_COMMA;   return 1
+  case ':': pToken.eType = T_COLON;   return 1
+  case '>': pToken.eType = T_GT;      return 1
+  case '=':
+    if z[1]=='=' {
+      pToken.eType = T_EQ
+      return 2
+    }
+    pToken.eType = T_ASSIGN
+    pToken.eCode = T_ASSIGN
+    return 1
 
-	case '-':
-		if z[1]=='>' {
-			pToken.eType = T_RARROW
-			return 2
-		} else if z[1]=='=' {
-			pToken.eType = T_ASSIGN
-			pToken.eCode = T_MINUS
-			return 2
-		} else {
-			pToken.eType = T_MINUS
-			return 1
-		}
+  case '-':
+    if z[1]=='>' {
+      pToken.eType = T_RARROW
+      return 2
+    } else if z[1]=='=' {
+      pToken.eType = T_ASSIGN
+      pToken.eCode = T_MINUS
+      return 2
+    } else {
+      pToken.eType = T_MINUS
+      return 1
+    }
 
- 	case '<':
-		if z[1]=='-' {
-			if z[2]=='>' {
-				pToken.eType = T_LRARROW
-				return 3
-			} else {
-				pToken.eType = T_LARROW
-				return 2
-			}
-		} else {
-			pToken.eType = T_LT
-			return 1
-		}
+   case '<':
+    if z[1]=='-' {
+      if z[2]=='>' {
+        pToken.eType = T_LRARROW
+        return 3
+      } else {
+        pToken.eType = T_LARROW
+        return 2
+      }
+    } else {
+      pToken.eType = T_LT
+      return 1
+    }
 
-	case 0xe2:
-		if z[1]==0x86 {
-			if z[2]==0x90 {
-				pToken.eType = T_LARROW   /* <- */
-				return 3
-			}
-			if z[2]==0x92 {
-				pToken.eType = T_RARROW   /* . */
-				return 3
-			}
-			if z[2]==0x94 {
-				pToken.eType = T_LRARROW  /* <. */
-				return 3
-			}
-		}
-		pToken.eType = T_ERROR
-		return 1
+  case 0xe2:
+    if z[1]==0x86 {
+      if z[2]==0x90 {
+        pToken.eType = T_LARROW   /* <- */
+        return 3
+      }
+      if z[2]==0x92 {
+        pToken.eType = T_RARROW   /* . */
+        return 3
+      }
+      if z[2]==0x94 {
+        pToken.eType = T_LRARROW  /* <. */
+        return 3
+      }
+    }
+    pToken.eType = T_ERROR
+    return 1
 
-	case '{':
-		var depth int
-		i = 1
-		if bAllowCodeBlock {
-			depth = 1
-			for z[i]!=0 && depth>0 {
-				var x PToken
-				x.z = z[i:]
-				len := pik_token_length(&x, false)
-				if len==1 {
-					if z[i]=='{' { depth++ }
-					if z[i]=='}' { depth-- }
-				}
-				i += len
-			}
-		} else{
-			depth = 0
-		}
-		if depth != 0 {
-			pToken.eType = T_ERROR
-			return 1
-		}
-		pToken.eType = T_CODEBLOCK
-		return i
+  case '{':
+    var depth int
+    i = 1
+    if bAllowCodeBlock {
+      depth = 1
+      for z[i]!=0 && depth>0 {
+        var x PToken
+        x.z = z[i:]
+        len := pik_token_length(&x, false)
+        if len==1 {
+          if z[i]=='{' { depth++ }
+          if z[i]=='}' { depth-- }
+        }
+        i += len
+      }
+    } else{
+      depth = 0
+    }
+    if depth != 0 {
+      pToken.eType = T_ERROR
+      return 1
+    }
+    pToken.eType = T_CODEBLOCK
+    return i
 
-	case '&':
-		for i, ent := range aEntity {
-			if bytencmp(z,aEntity[i].zEntity,len(aEntity[i].zEntity))==0 {
-				pToken.eType = uint8(ent.eCode)
-				return len(aEntity[i].zEntity)
-			}
-		}
-		pToken.eType = T_ERROR
-		return 1
+  case '&':
+    for i, ent := range aEntity {
+      if bytencmp(z,aEntity[i].zEntity,len(aEntity[i].zEntity))==0 {
+        pToken.eType = uint8(ent.eCode)
+        return len(aEntity[i].zEntity)
+      }
+    }
+    pToken.eType = T_ERROR
+    return 1
 
-	default:
-		c := z[0]
-		if c=='.' {
-			c1 := z[1]
-			if islower(c1) {
-				for i=2; z[i]>='a' && z[i]<='z'; i++ {}
-				pFound := pik_find_word(string(z[1:i]),	pik_keywords)
-				if pFound != nil && (pFound.eEdge>0 ||
-					pFound.eType==T_EDGEPT ||
-					pFound.eType==T_START ||
-					pFound.eType==T_END) {
-					/* Dot followed by something that is a 2-D place value */
-					pToken.eType = T_DOT_E
-				} else if  pFound != nil && (pFound.eType==T_X || pFound.eType==T_Y) {
-					/* Dot followed by "x" or "y" */
-					pToken.eType = T_DOT_XY
-				} else {
-					/* Any other "dot" */
-					pToken.eType = T_DOT_L
-				}
-				return 1
-			} else if isdigit(c1) {
-				i = 0
-				/* no-op.  Fall through to number handling */
-			} else if isupper(c1) {
-				for i=2; z[i]!=0 && (isalnum(z[i]) || z[i] == '_') ; i++ {}
-				pToken.eType = T_DOT_U
-				return 1
-			} else {
-				pToken.eType = T_ERROR
-				return 1
-			}
-		}
-		if (c>='0' && c<='9') || c=='.' {
-			var nDigit int
-			isInt := true
-			if c!='.' {
-				nDigit = 1
-				for i=1; ; i++ {
-					c = z[i]
-					if c<'0' || c>'9' {
-						break
-					}
-					nDigit++
-				}
-				if i==1 && (c=='x' || c=='X') {
-					for i=2; z[i]!=0 && isxdigit(z[i]); i++ {}
-					pToken.eType = T_NUMBER
-					return i
-				}
-			} else {
-				isInt = false
-				nDigit = 0
-				i = 0
-			}
-			if c=='.' {
-				isInt = false
-				for i++; ;i++ {
-					c = z[i]
-					if c<'0' || c>'9' {
-						break
-					}
-					nDigit++
-				}
-			}
-			if nDigit==0 {
-				pToken.eType = T_ERROR
-				return i
-			}
-			if c=='e' || c=='E' {
-				iBefore := i
-				i++
-				c2 := z[i]
-				if c2=='+' || c2=='-' {
-					i++
-					c2 = z[i]
-				}
-				if c2<'0' || c>'9' {
-					/* This is not an exp */
-					i = iBefore
-				} else {
-					i++
-					isInt = false
-					for {
-						c = z[i]
-						if c<'0' || c>'9' { break }
-						i++
-					}
-				}
-			}
-			var c2 byte
-			if c != 0 {
-				c2 = z[i+1]
-			}
-			if isInt {
-				if (c=='t' && c2=='h') ||
-					(c=='r' && c2=='d') ||
-					(c=='n' && c2=='d') ||
-					(c=='s' && c2=='t') {
-					pToken.eType = T_NTH
-					return i+2
-				}
-			}
-			if (c=='i' && c2=='n') ||
-				(c=='c' && c2=='m') ||
-				(c=='m' && c2=='m') ||
-				(c=='p' && c2=='t') ||
-				(c=='p' && c2=='x') ||
-				(c=='p' && c2=='c') {
-				i += 2
-			}
-			pToken.eType = T_NUMBER
-			return i
-		} else if islower(c) {
-			for i=1; z[i]!=0 && (isalnum(z[i]) || z[i]=='_'); i++ {}
-			pFound := pik_find_word(string(z[:i]), pik_keywords)
-			if pFound != nil {
-				pToken.eType = pFound.eType
-				pToken.eCode = int16(pFound.eCode)
-				pToken.eEdge = pFound.eEdge
-				return i
-			}
-			pToken.n = i
-			if pik_find_class(pToken)!=nil {
-				pToken.eType = T_CLASSNAME
-			} else {
-				pToken.eType = T_ID
-			}
-			return i
-		} else if c>='A' && c<='Z' {
-			for i=1; z[i]!=0 && (isalnum(z[i]) || z[i]=='_'); i++ {}
-			pToken.eType = T_PLACENAME
-			return i
-		} else if c=='$' && z[1]>='1' && z[1]<='9' && !isdigit(z[2]) {
-			pToken.eType = T_PARAMETER
-			pToken.eCode = int16(z[1] - '1')
-			return 2
-		} else if  c=='_' || c=='$' || c=='@' {
-			for i=1; z[i]!=0 && (isalnum(z[i]) || z[i] == '_') ; i++ {}
-			pToken.eType = T_ID
-			return i
-		} else {
-			pToken.eType = T_ERROR
-			return 1
-		}
-	}
+  default:
+    c := z[0]
+    if c=='.' {
+      c1 := z[1]
+      if islower(c1) {
+        for i=2; z[i]>='a' && z[i]<='z'; i++ {}
+        pFound := pik_find_word(string(z[1:i]),  pik_keywords)
+        if pFound != nil && (pFound.eEdge>0 ||
+          pFound.eType==T_EDGEPT ||
+          pFound.eType==T_START ||
+          pFound.eType==T_END) {
+          /* Dot followed by something that is a 2-D place value */
+          pToken.eType = T_DOT_E
+        } else if  pFound != nil && (pFound.eType==T_X || pFound.eType==T_Y) {
+          /* Dot followed by "x" or "y" */
+          pToken.eType = T_DOT_XY
+        } else {
+          /* Any other "dot" */
+          pToken.eType = T_DOT_L
+        }
+        return 1
+      } else if isdigit(c1) {
+        i = 0
+        /* no-op.  Fall through to number handling */
+      } else if isupper(c1) {
+        for i=2; z[i]!=0 && (isalnum(z[i]) || z[i] == '_') ; i++ {}
+        pToken.eType = T_DOT_U
+        return 1
+      } else {
+        pToken.eType = T_ERROR
+        return 1
+      }
+    }
+    if (c>='0' && c<='9') || c=='.' {
+      var nDigit int
+      isInt := true
+      if c!='.' {
+        nDigit = 1
+        for i=1; ; i++ {
+          c = z[i]
+          if c<'0' || c>'9' {
+            break
+          }
+          nDigit++
+        }
+        if i==1 && (c=='x' || c=='X') {
+          for i=2; z[i]!=0 && isxdigit(z[i]); i++ {}
+          pToken.eType = T_NUMBER
+          return i
+        }
+      } else {
+        isInt = false
+        nDigit = 0
+        i = 0
+      }
+      if c=='.' {
+        isInt = false
+        for i++; ;i++ {
+          c = z[i]
+          if c<'0' || c>'9' {
+            break
+          }
+          nDigit++
+        }
+      }
+      if nDigit==0 {
+        pToken.eType = T_ERROR
+        return i
+      }
+      if c=='e' || c=='E' {
+        iBefore := i
+        i++
+        c2 := z[i]
+        if c2=='+' || c2=='-' {
+          i++
+          c2 = z[i]
+        }
+        if c2<'0' || c>'9' {
+          /* This is not an exp */
+          i = iBefore
+        } else {
+          i++
+          isInt = false
+          for {
+            c = z[i]
+            if c<'0' || c>'9' { break }
+            i++
+          }
+        }
+      }
+      var c2 byte
+      if c != 0 {
+        c2 = z[i+1]
+      }
+      if isInt {
+        if (c=='t' && c2=='h') ||
+          (c=='r' && c2=='d') ||
+          (c=='n' && c2=='d') ||
+          (c=='s' && c2=='t') {
+          pToken.eType = T_NTH
+          return i+2
+        }
+      }
+      if (c=='i' && c2=='n') ||
+        (c=='c' && c2=='m') ||
+        (c=='m' && c2=='m') ||
+        (c=='p' && c2=='t') ||
+        (c=='p' && c2=='x') ||
+        (c=='p' && c2=='c') {
+        i += 2
+      }
+      pToken.eType = T_NUMBER
+      return i
+    } else if islower(c) {
+      for i=1; z[i]!=0 && (isalnum(z[i]) || z[i]=='_'); i++ {}
+      pFound := pik_find_word(string(z[:i]), pik_keywords)
+      if pFound != nil {
+        pToken.eType = pFound.eType
+        pToken.eCode = int16(pFound.eCode)
+        pToken.eEdge = pFound.eEdge
+        return i
+      }
+      pToken.n = i
+      if pik_find_class(pToken)!=nil {
+        pToken.eType = T_CLASSNAME
+      } else {
+        pToken.eType = T_ID
+      }
+      return i
+    } else if c>='A' && c<='Z' {
+      for i=1; z[i]!=0 && (isalnum(z[i]) || z[i]=='_'); i++ {}
+      pToken.eType = T_PLACENAME
+      return i
+    } else if c=='$' && z[1]>='1' && z[1]<='9' && !isdigit(z[2]) {
+      pToken.eType = T_PARAMETER
+      pToken.eCode = int16(z[1] - '1')
+      return 2
+    } else if  c=='_' || c=='$' || c=='@' {
+      for i=1; z[i]!=0 && (isalnum(z[i]) || z[i] == '_') ; i++ {}
+      pToken.eType = T_ID
+      return i
+    } else {
+      pToken.eType = T_ERROR
+      return 1
+    }
+  }
 }
 
 /*
@@ -4856,16 +4876,16 @@ func pik_token_length(pToken *PToken, bAllowCodeBlock bool) int {
 */
 func pik_next_semantic_token(pThis *PToken) PToken {
   var x PToken
-	i := pThis.n
-	x.z = pThis.z
+  i := pThis.n
+  x.z = pThis.z
   for {
-		x.z = pThis.z[i:]
+    x.z = pThis.z[i:]
     sz := pik_token_length(&x, true);
     if x.eType!=T_WHITESPACE {
-			x.n = sz
+      x.n = sz
       return x
     }
-		i += sz
+    i += sz
   }
 }
 
@@ -4882,7 +4902,7 @@ func pik_next_semantic_token(pThis *PToken) PToken {
 */
 func (p *Pik) pik_parse_macro_args(
   z []byte,          /* Start of the argument list */
-	n int,             /* Available bytes */
+  n int,             /* Available bytes */
   args []PToken ,    /* Fill in with the arguments */
   pOuter []PToken,   /* Arguments of the next outer context, or NULL */
 ) int {
@@ -4941,89 +4961,89 @@ func (p *Pik) pik_parse_macro_args(
 ** send each to the parser.
 */
 func (p *Pik) pik_tokenize(pIn *PToken, pParser *yyParser, aParam []PToken) {
-	sz := 0
+  sz := 0
   var token PToken
   for i:=0; i<pIn.n && pIn.z[i]!=0 && p.nErr==0; i+=sz {
     token.eCode = 0
     token.eEdge = 0
-		token.z = pIn.z[i:]
+    token.z = pIn.z[i:]
     sz = pik_token_length(&token, true)
     if token.eType==T_WHITESPACE {
-			continue
+      continue
       /* no-op */
     }
-		if sz>50000 {
-			token.n = 1
+    if sz>50000 {
+      token.n = 1
       p.pik_error(&token, "token is too long - max length 50000 bytes")
       break
     }
-		if token.eType==T_ERROR {
-			token.n = sz
+    if token.eType==T_ERROR {
+      token.n = sz
       p.pik_error(&token, "unrecognized token")
       break
     }
-		if sz+i>pIn.n {
-			token.n = pIn.n-i
+    if sz+i>pIn.n {
+      token.n = pIn.n-i
       p.pik_error(&token, "syntax error")
       break
     }
-		if token.eType==T_PARAMETER {
+    if token.eType==T_PARAMETER {
       /* Substitute a parameter into the input stream */
       if aParam==nil || aParam[token.eCode].n==0 {
         continue
       }
-			token.n = sz
+      token.n = sz
       if p.nCtx>=len(p.aCtx) {
         p.pik_error(&token, "macros nested too deep")
       } else {
         p.aCtx[p.nCtx] = token
-				p.nCtx++
+        p.nCtx++
         p.pik_tokenize(&aParam[token.eCode], pParser, nil)
         p.nCtx--
       }
-			continue
+      continue
     }
 
-		if token.eType==T_ID {
-			token.n = sz
-			pMac := p.pik_find_macro(&token)
-			if pMac != nil {
-				args := make([]PToken, 9)
-				j := i+sz
-				if pMac.inUse {
-					p.pik_error(&pMac.macroName, "recursive macro definition")
-					break
-				}
-				token.n = sz
-				if p.nCtx>=len(p.aCtx) {
-					p.pik_error(&token, "macros nested too deep")
-					break
-				}
-				pMac.inUse = true
-				p.aCtx[p.nCtx] = token
-				p.nCtx++
-				sz += p.pik_parse_macro_args(pIn.z[j:], pIn.n-j, args, aParam)
-				p.pik_tokenize(&pMac.macroBody, pParser, args)
-				p.nCtx--
-				pMac.inUse = false
-				continue
-			}
-		}
-		if false {// #if 0
-			n := sz
-			if isspace(token.z[0]) {
-				n = 0
-			}
+    if token.eType==T_ID {
+      token.n = sz
+      pMac := p.pik_find_macro(&token)
+      if pMac != nil {
+        args := make([]PToken, 9)
+        j := i+sz
+        if pMac.inUse {
+          p.pik_error(&pMac.macroName, "recursive macro definition")
+          break
+        }
+        token.n = sz
+        if p.nCtx>=len(p.aCtx) {
+          p.pik_error(&token, "macros nested too deep")
+          break
+        }
+        pMac.inUse = true
+        p.aCtx[p.nCtx] = token
+        p.nCtx++
+        sz += p.pik_parse_macro_args(pIn.z[j:], pIn.n-j, args, aParam)
+        p.pik_tokenize(&pMac.macroBody, pParser, args)
+        p.nCtx--
+        pMac.inUse = false
+        continue
+      }
+    }
+    if false {// #if 0
+      n := sz
+      if isspace(token.z[0]) {
+        n = 0
+      }
 
       fmt.Printf("******** Token %s (%d): \"%s\" **************\n",
-				yyTokenName[token.eType], token.eType, string(token.z[:n]))
-		} // #endif
-		token.n = sz
-		if p.nToken++; p.nToken > PIKCHR_TOKEN_LIMIT {
-			p.pik_error(&token, "script is too complex")
-			break;
-		}
-		pParser.pik_parser(token.eType, token)
+        yyTokenName[token.eType], token.eType, string(token.z[:n]))
+    } // #endif
+    token.n = sz
+    if p.nToken++; p.nToken > PIKCHR_TOKEN_LIMIT {
+      p.pik_error(&token, "script is too complex")
+      break;
+    }
+    pParser.pik_parser(token.eType, token)
   }
 }
 
@@ -5044,34 +5064,34 @@ func (p *Pik) pik_tokenize(pIn *PToken, pParser *yyParser, aParam []PToken) {
 ** and should be released by the caller.
 */
 func Pikchr(
-	zString string,     /* Input PIKCHR source text.  zero-terminated */
+  zString string,     /* Input PIKCHR source text.  zero-terminated */
   zClass string,    /* Add class="%s" to <svg> markup */
   mFlags uint,      /* Flags used to influence rendering behavior */
   pnWidth *int,     /* Write width of <svg> here, if not NULL */
   pnHeight *int,    /* Write height here, if not NULL */
 ) string {
-	s := Pik{}
+  s := Pik{}
   var sParse yyParser
 
-	zText := []byte(zString)
-	s.sIn.n = len(zText)
-	s.sIn.z = append(zText, 0)
+  zText := []byte(zString)
+  s.sIn.n = len(zText)
+  s.sIn.z = append(zText, 0)
   s.eDir = DIR_RIGHT
   s.zClass = zClass
   s.mFlags = mFlags
   sParse.pik_parserInit(&s)
-	if false { // #if 0
-		pik_parserTrace(os.Stdout, "parser: ")
-	} // #endif
+  if false { // #if 0
+    pik_parserTrace(os.Stdout, "parser: ")
+  } // #endif
   s.pik_tokenize(&s.sIn, &sParse, nil)
   if s.nErr==0 {
-		var token PToken
-		if s.sIn.n>0 {
-			token.z = zText[s.sIn.n-1:]
-		} else {
-			token.z = zText
-		}
-		token.n = 1
+    var token PToken
+    if s.sIn.n>0 {
+      token.z = zText[s.sIn.n-1:]
+    } else {
+      token.z = zText
+    }
+    token.n = 1
     sParse.pik_parser(0, token)
   }
   sParse.pik_parserFinalize()
@@ -5102,43 +5122,43 @@ func Pikchr(
 
 // Helpers added for port to Go
 func isxdigit(b byte) bool {
-	return (b>='0' && b<='9') || (b>='a' && b<='f') || (b>='A' && b<='F')
+  return (b>='0' && b<='9') || (b>='a' && b<='f') || (b>='A' && b<='F')
 }
 
 func isalnum(b byte) bool {
-	return (b>='0' && b<='9') || (b>='a' && b<='z') || (b>='A' && b<='Z')
+  return (b>='0' && b<='9') || (b>='a' && b<='z') || (b>='A' && b<='Z')
 }
 
 func isdigit(b byte) bool {
-	return (b>='0' && b<='9')
+  return (b>='0' && b<='9')
 }
 
 func isspace(b byte) bool {
-	return b==' ' || b=='\n' || b=='\t' || b=='\f'
+  return b==' ' || b=='\n' || b=='\t' || b=='\f'
 }
 
 func isupper(b byte) bool {
-	return (b>='A' && b<='Z')
+  return (b>='A' && b<='Z')
 }
 
 func islower(b byte) bool {
-	return (b>='a' && b<='z')
+  return (b>='a' && b<='z')
 }
 
 func bytencmp(a []byte, s string, n int) int {
-	return strings.Compare(string(a[:n]), s)
+  return strings.Compare(string(a[:n]), s)
 }
 
 func bytesEq(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, bb := range a {
-		if b[i] != bb {
-			return false
-		}
-	}
-	return true
+  if len(a) != len(b) {
+    return false
+  }
+  for i, bb := range a {
+    if b[i] != bb {
+      return false
+    }
+  }
+  return true
 }
 
 } // end %code
