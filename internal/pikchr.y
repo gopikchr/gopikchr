@@ -3842,8 +3842,6 @@ func (p *Pik) pik_same(pOther *PObj, pErrTok *PToken) {
   pObj.rarrow = pOther.rarrow
   pObj.bClose = pOther.bClose
   pObj.bChop = pOther.bChop
-  pObj.inDir = pOther.inDir
-  pObj.outDir = pOther.outDir
   pObj.iLayer = pOther.iLayer
 }
 

@@ -65,3 +65,17 @@
  pikchr.y | 1 -
 
 * Undid 128% extra size for monospaced font
+
+### commit 511e98a82140dcce0174cbe6f98bc24e801f2354
+
+    It seems like the "same" operator should not mess with layout direction.
+    See [/forumpost/75a2220c44|forum thread 75a2220c44].
+
+    FossilOrigin-Name: 62b766efe8faea55ef137eeda907c7156a346ced1f620c6ca57c16c9bc45fc84
+
+ pikchr.c             |  4 +---
+ pikchr.y             |  2 --
+ tests/fonts01.pikchr | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/test77.pikchr  | 11 +++++++++++
+
+* Made the corresponding changes to not override direction
