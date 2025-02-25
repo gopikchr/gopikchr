@@ -113,3 +113,14 @@
  tests/test41.pikchr | 10 ++++++++++
 
 * Just a test to copy over
+
+### commit 0f1e8a45ff69ac00fc20ce89149f879932d24edb
+
+    Increase an snprintf() output buffer size by a few bytes to squelch a warning from gcc 12.2 reported in fossil /chat.
+
+    FossilOrigin-Name: 4bb035e213b01d3acc11ec37902b55787844e851e7bdfad15d9fd7fbe0677f58
+
+ pikchr.c | 2 +-
+ pikchr.y | 2 +-
+
+* Nothing changed in the Go version
