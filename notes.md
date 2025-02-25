@@ -138,3 +138,21 @@
  tests/test78.pikchr     |  1 +
 
 * Translated the code over. Same style as code beside it.
+
+### commit 8e6d5c106e3d99a2d15a7927b3ad45f25477c0d1
+
+    Replaced the macro form of "diamond" in test71.pikchr with native Pikchr
+    diamonds.  Rigorous regression testing would flag a change like this for
+    a difference in the SVG output, but we don't have that in this project;
+    "make test" merely opens the result of rendering this file and others in
+    an HTML page for visual inspection.
+
+    Another way of justifying this commit, therefore, is that it fixes
+    syntax errors in the test output, owing to the recent elevation of
+    "diamond" to a keyword.
+
+    FossilOrigin-Name: 48f60266386dcf07a88b3c5f550e901675a2b9dac4529e7cdfb44afa8d081740
+
+ tests/test71.pikchr | 11 +++--------
+
+* Just copied the test over
