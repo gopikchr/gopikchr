@@ -168,3 +168,13 @@
  pikchr.c | 370 ++++++++++++++++++++++++++++++++++-----------------------------
 
 * Nothing to do - we use golemon
+
+### commit 2dd37320c37df41c282b1388fb6b7377650ba533
+
+    Update a test case to include a diamond object.
+
+    FossilOrigin-Name: fd78aef978b65ed0de7d425b0f4a672cf98814fe192d259a378ab649bab8ecb1
+
+ tests/test41.pikchr | 10 ++++++++++
+
+* Just copied the test over
