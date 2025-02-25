@@ -229,3 +229,15 @@
  tests/test80.pikchr | 30 ++++++++++++++++++++++++++++++
 
 * Copied the small change over
+
+### commit e3576f06ea0044f48f0289e6639f0d284425f8c7
+
+    Add "style='font-size:100%'" to the &lt;svg&gt; element to work around an
+    issue in Safari.  [/forumpost/8c9e9aa984|Forum post 8c9e9aa984].
+
+    FossilOrigin-Name: 67d1cab26b5b812f2a046318a8269655fe0bc3f52abac29bc3b8dfc537609cc8
+
+ pikchr.c | 5 +++--
+ pikchr.y | 3 ++-
+
+* Copy the SVG tag change over

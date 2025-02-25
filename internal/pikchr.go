@@ -7741,7 +7741,8 @@ func (p *Pik) pik_render(pList PList) {
 		p.bbox.sw.y -= margin + p.pik_value("bottommargin", nil)
 
 		/* Output the SVG */
-		p.pik_append("<svg xmlns='http://www.w3.org/2000/svg'")
+		p.pik_append("<svg xmlns='http://www.w3.org/2000/svg'" +
+			" style='font-size:100%'")
 		if p.zClass != "" {
 			p.pik_append(" class=\"")
 			p.pik_append(p.zClass)
@@ -8621,4 +8622,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7854 "pikchr.go"
+//line 7855 "pikchr.go"
