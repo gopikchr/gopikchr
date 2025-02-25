@@ -332,6 +332,7 @@ type PObj struct {
   rarrow bool              /* Arrow at end  (-> or <->) */
   bClose bool              /* True if "close" is seen */
   bChop bool               /* True if "chop" is seen */
+  bAltAutoFit bool         /* Always send both h and w into xFit() */
   nTxt uint8               /* Number of text values */
   mProp uint               /* Masks of properties set so far */
   mCalc uint               /* Values computed from other constraints */
@@ -340,7 +341,7 @@ type PObj struct {
   inDir uint8              /* Entry and exit directions */
   outDir uint8
   nPath int                /* Number of path points */
-  aPath []PPoint            /* Array of path points */
+  aPath []PPoint           /* Array of path points */
   pFrom *PObj              /* End-point objects of a path */
   pTo *PObj
   bbox PBox                /* Bounding box */
@@ -1288,6 +1289,7 @@ func dotRender(p *Pik, pObj *PObj){
 func diamondInit(p *Pik, pObj *PObj){
   pObj.w = p.pik_value("diamondwid",nil)
   pObj.h = p.pik_value("diamondht",nil)
+  pObj.bAltAutoFit = true
 }
 /* Return offset from the center of the box to the compass point
 ** given by parameter cp */
@@ -1312,7 +1314,9 @@ func diamondOffset(p *Pik, pObj *PObj, cp uint8) PPoint {
   return pt
 }
 func diamondFit(p *Pik, pObj *PObj, w PNum, h PNum){
-  if( pObj.w>0 && pObj.h>0 ){
+  if pObj.w<=0 { pObj.w = w*1.5 }
+  if pObj.h<=0 { pObj.h = h*1.5 }
+  if pObj.w>0 && pObj.h>0 {
     var x PNum = pObj.w*h/pObj.h + w
     var y PNum = pObj.h*x/pObj.w
     pObj.w = x
@@ -3586,10 +3590,10 @@ func (p *Pik) pik_size_to_fit(pFit *PToken, eWhich int) {
   pik_bbox_init(&bbox)
   p.pik_compute_layout_settings()
   p.pik_append_txt(pObj, &bbox)
-  if eWhich&1 != 0 {
+  if eWhich&1 != 0 || pObj.bAltAutoFit {
     w = (bbox.ne.x - bbox.sw.x) + p.charWidth
   }
-  if eWhich&2 != 0 {
+  if eWhich&2 != 0 || pObj.bAltAutoFit {
     var h1, h2 PNum
     h1 = bbox.ne.y - pObj.ptAt.y
     h2 = pObj.ptAt.y - bbox.sw.y

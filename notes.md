@@ -178,3 +178,17 @@
  tests/test41.pikchr | 10 ++++++++++
 
 * Just copied the test over
+
+### commit d7ae70d3200d0c8f44db3ec55fe54c7b91a9bf0d
+
+    Fix the autofit functionality for the diamond object.  New test cases for
+    the same.
+
+    FossilOrigin-Name: ad1f8186cd90dc65b21bea897a7efd005200cba4ef1832334a0873eff9f92fa1
+
+ pikchr.c            | 470 ++++++++++++++++++++++++++--------------------------
+ pikchr.y            |  12 +-
+ tests/test54.pikchr |   6 +-
+ tests/test65.pikchr |  12 ++
+
+* Translated the code on over.
