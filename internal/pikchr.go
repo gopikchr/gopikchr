@@ -3772,6 +3772,8 @@ var aBuiltin = []struct {
 	{"cylrad", 0.075},
 	{"cylwid", 0.75},
 	{"dashwid", 0.05},
+	{"diamondht", 0.75},
+	{"diamondwid", 1.0},
 	{"dotrad", 0.015},
 	{"ellipseht", 0.5},
 	{"ellipsewid", 0.75},
@@ -4202,6 +4204,75 @@ func dotRender(p *Pik, pObj *PObj) {
 		p.pik_append_y(" cy=\"", pt.y, "\"")
 		p.pik_append_dis(" r=\"", r, "\"")
 		p.pik_append_style(pObj, 2)
+		p.pik_append("\" />\n")
+	}
+	p.pik_append_txt(pObj, nil)
+}
+
+/* Methods for the "diamond" class */
+func diamondInit(p *Pik, pObj *PObj) {
+	pObj.w = p.pik_value("diamondwid", nil)
+	pObj.h = p.pik_value("diamondht", nil)
+}
+
+/* Return offset from the center of the box to the compass point
+** given by parameter cp */
+func diamondOffset(p *Pik, pObj *PObj, cp uint8) PPoint {
+	var pt PPoint
+	var w2 PNum = 0.5 * pObj.w
+	var w4 PNum = 0.25 * pObj.w
+	var h2 PNum = 0.5 * pObj.h
+	var h4 PNum = 0.25 * pObj.h
+	switch cp {
+	case CP_C:
+	case CP_N:
+		pt.x = 0.0
+		pt.y = h2
+	case CP_NE:
+		pt.x = w4
+		pt.y = h4
+	case CP_E:
+		pt.x = w2
+		pt.y = 0.0
+	case CP_SE:
+		pt.x = w4
+		pt.y = -h4
+	case CP_S:
+		pt.x = 0.0
+		pt.y = -h2
+	case CP_SW:
+		pt.x = -w4
+		pt.y = -h4
+	case CP_W:
+		pt.x = -w2
+		pt.y = 0.0
+	case CP_NW:
+		pt.x = -w4
+		pt.y = h4
+	default:
+		assert(false, "false")
+	}
+	return pt
+}
+func diamondFit(p *Pik, pObj *PObj, w PNum, h PNum) {
+	if pObj.w > 0 && pObj.h > 0 {
+		var x PNum = pObj.w*h/pObj.h + w
+		var y PNum = pObj.h * x / pObj.w
+		pObj.w = x
+		pObj.h = y
+	}
+}
+func diamondRender(p *Pik, pObj *PObj) {
+	var w2 PNum = 0.5 * pObj.w
+	var h2 PNum = 0.5 * pObj.h
+	pt := pObj.ptAt
+	if pObj.sw >= 0.0 {
+		p.pik_append_xy("<path d=\"M", pt.x-w2, pt.y)
+		p.pik_append_xy("L", pt.x, pt.y-h2)
+		p.pik_append_xy("L", pt.x+w2, pt.y)
+		p.pik_append_xy("L", pt.x, pt.y+h2)
+		p.pik_append("Z\" ")
+		p.pik_append_style(pObj, 3)
 		p.pik_append("\" />\n")
 	}
 	p.pik_append_txt(pObj, nil)
@@ -4669,6 +4740,18 @@ var aClass = []PClass{
 		xOffset:  cylinderOffset,
 		xFit:     cylinderFit,
 		xRender:  cylinderRender,
+	},
+	{
+		zName:    "diamond",
+		isLine:   false,
+		eJust:    0,
+		xInit:    diamondInit,
+		xNumProp: nil,
+		xCheck:   nil,
+		xChop:    boxChop,
+		xOffset:  diamondOffset,
+		xFit:     diamondFit,
+		xRender:  diamondRender,
 	},
 	{
 		zName:    "dot",
@@ -8530,4 +8613,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7787 "pikchr.go"
+//line 7850 "pikchr.go"

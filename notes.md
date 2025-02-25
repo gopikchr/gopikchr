@@ -124,3 +124,17 @@
  pikchr.y | 2 +-
 
 * Nothing changed in the Go version
+
+### commit a89d4c702c4253d959b9513b0c60fa8704c78a49
+
+    Add support for the "diamond" primitive.
+
+    FossilOrigin-Name: 36751abee2b04be56c8d470e66c83933df57de6396a9f019bf41d783763e2a3c
+
+ pikchr.c                | 67 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ pikchr.y                | 65 +++++++++++++++++++++++++++++++++++++++++++++++
+ tests/autochop10.pikchr | 38 ++++++++++++++++++++++++++++
+ tests/diamond01.pikchr  | 14 +++++++++++
+ tests/test78.pikchr     |  1 +
+
+* Translated the code over. Same style as code beside it.
