@@ -206,3 +206,14 @@
  pikchr.y     |  3 ++-
 
 * Changes to the CLI actually live in `cmd/gopikchr/gopikchr.go
+
+### commit 9fb6a77c71a9931847d5b94113fad10fc51de9b1
+
+    Fix (harmless) typos reported by [/forumpost/3a76eb4395|forum post 3a76eb4395].
+
+    FossilOrigin-Name: ae3317b0ec2e635cb14ff65ff4225a5647533d48d5dcc9831fd0268792a2b09d
+
+ pikchr.c | 4 ++--
+ pikchr.y | 4 ++--
+
+* Nothing to do here.
