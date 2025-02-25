@@ -103,3 +103,13 @@
  tests/test79.pikchr | 7 +++++++
 
 * Mostly careful use around zero of `sw` variables
+
+### commit cf7a53d073f55251a699b3a6c19080c99713fc2f
+
+    Enhanced a test case so that it shows compass points for "file" objects.
+
+    FossilOrigin-Name: d6f80b1ab30654d5124557fd64770799e51038c579fd1c5432c1ab6549a275a5
+
+ tests/test41.pikchr | 10 ++++++++++
+
+* Just a test to copy over
