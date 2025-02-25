@@ -156,3 +156,15 @@
  tests/test71.pikchr | 11 +++--------
 
 * Just copied the test over
+
+### commit f1836afa1121649b7001f1bdbba5727cea66a76a
+
+    Update the built-in Lemon parser to the latest version.
+
+    FossilOrigin-Name: 24c702e82cff7c01b8c2a87a6cfc7305ccfb03f9465835367f82c0659c2ebaa9
+
+ lemon.c  |  80 ++++++++++++--
+ lempar.c | 132 +++++++++++++----------
+ pikchr.c | 370 ++++++++++++++++++++++++++++++++++-----------------------------
+
+* Nothing to do - we use golemon
