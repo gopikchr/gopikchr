@@ -4416,7 +4416,7 @@ func (p *Pik) pik_render(pList PList) {
 
     /* Output the SVG */
     p.pik_append("<svg xmlns='http://www.w3.org/2000/svg'" +
-    " style='font-size:100%'")
+    " style='font-size:initial;'")
     if p.zClass != "" {
       p.pik_append(" class=\"")
       p.pik_append(p.zClass)

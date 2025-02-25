@@ -241,3 +241,14 @@
  pikchr.y | 3 ++-
 
 * Copy the SVG tag change over
+
+### commit 0624fc4904a9c8d628d8e4ede7386b590d123d68
+
+    In the previous check-in, a better value for font-size is "initial".
+
+    FossilOrigin-Name: 1562bd171ab868db152cffc7c0c2aca9dc416ef5acd66e8de6d9d6a0b9ebeff6
+
+ pikchr.c | 2 +-
+ pikchr.y | 2 +-
+
+* Copy the fix over
