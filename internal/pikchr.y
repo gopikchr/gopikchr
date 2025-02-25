@@ -3341,7 +3341,7 @@ func (p *Pik) pik_set_at(pEdge *PToken, pAt *PPoint, pErrTok *PToken) {
     pObj.eWith = pEdge.eEdge
   }
   if pObj.eWith>=CP_END {
-    dir := pObj.inDir
+    dir := (pObj.inDir+2) % 4
     if pObj.eWith == CP_END {
       dir = pObj.outDir
     }

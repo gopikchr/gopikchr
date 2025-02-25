@@ -217,3 +217,15 @@
  pikchr.y | 4 ++--
 
 * Nothing to do here.
+
+### commit 45ae9fdb0d026153ec96fcee783050dacae4ca80
+
+    Fix the behavior of "with .start". [/forumpost/a48fbe155b|Forum post a48fbe155b]
+
+    FossilOrigin-Name: e79028e18dce9f2c089e69aa33012ee214026b6a1ca97c42e20d8e46fdc92b3b
+
+ pikchr.c            |  2 +-
+ pikchr.y            |  2 +-
+ tests/test80.pikchr | 30 ++++++++++++++++++++++++++++++
+
+* Copied the small change over
