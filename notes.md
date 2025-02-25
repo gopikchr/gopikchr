@@ -192,3 +192,17 @@
  tests/test65.pikchr |  12 ++
 
 * Translated the code on over.
+
+### commit 77b06d99c8502beecf414ebf4cdfb3d07e2e20ba
+
+    For the "pikchr" command-line tool, the --dont-stop flag always results in
+    a zero exit code.  Fix the MSVC Makefile so that "nmake test" works.
+
+    FossilOrigin-Name: ac94035c3223dd27a0c9429ff27945ebe6f7db4649eb565f97cb7c71e4979e8a
+
+ Makefile     |  6 +++---
+ Makefile.msc | 24 +++++++++++++++++-------
+ pikchr.c     |  5 +++--
+ pikchr.y     |  3 ++-
+
+* Changes to the CLI actually live in `cmd/gopikchr/gopikchr.go

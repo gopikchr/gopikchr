@@ -21,7 +21,7 @@ func main() {
 	var bDarkMode bool
 	flag.BoolVar(&bSvgOnly, "svg-only", false, "Emit raw SVG without the HTML wrapper")
 	flag.BoolVar(&bDontStop, "dont-stop", false, "Process all files even if earlier files have errors")
-	flag.BoolVar(&bDarkMode, "dark-mode", false, "White-on-Black")
+	flag.BoolVar(&bDarkMode, "dark-mode", false, "Generate \"dark mode\" output")
 
 	options := []gopikchr.Option{gopikchr.WithSVGClass("pikchr")}
 
@@ -69,7 +69,7 @@ func main() {
 			continue
 		}
 		zOut, w, _, err := gopikchr.Convert(string(zIn), options...)
-		if err != nil {
+		if err != nil && !bDontStop {
 			exitCode = true
 		}
 		if bSvgOnly {
