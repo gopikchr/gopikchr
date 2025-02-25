@@ -90,3 +90,16 @@
  pikchr.y | 26 +++++++++++++++-----------
 
 * Copied updates over. Mostly `s/>0.0/>=0.0/`
+
+### commit b2145bf3f7d16f3650e6d3208b22d3de9d895672
+
+    Fix text positioning of lines with negative thickness.
+
+    FossilOrigin-Name: 5b5ad53f2709eace79d2c8f4dd7cf3a4000c23ab85a52c5cf127638386933682
+
+ pikchr.c            | 7 ++++---
+ pikchr.y            | 5 +++--
+ tests/test78.pikchr | 8 ++++++++
+ tests/test79.pikchr | 7 +++++++
+
+* Mostly careful use around zero of `sw` variables

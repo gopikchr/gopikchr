@@ -5231,6 +5231,10 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
 	var hb1 PNum = 0.0 /* Height of the first "below" row of text */
 	var hb2 PNum = 0.0 /* Height of the second "below" row */
 	var yBase PNum = 0.0
+	var sw PNum = pObj.sw
+	if sw < 0 {
+		sw = 0
+	}
 	allMask := int16(0)
 
 	if p.nErr != 0 {
@@ -5247,7 +5251,7 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
 		allMask |= pObj.aTxt[i].eCode
 	}
 	if pObj.typ.isLine {
-		hc = pObj.sw * 1.5
+		hc = sw * 1.5
 	} else if pObj.rad > 0.0 && pObj.typ.zName == "cylinder" {
 		yBase = -0.75 * pObj.rad
 	}
@@ -5302,7 +5306,7 @@ func (p *Pik) pik_append_txt(pObj *PObj, pBox *PBox) {
 		}
 	}
 	if pObj.typ.eJust == 1 {
-		jw = 0.5 * (pObj.w - 0.5*(p.charWidth+pObj.sw))
+		jw = 0.5 * (pObj.w - 0.5*(p.charWidth+sw))
 	} else {
 		jw = 0.0
 	}
@@ -8526,4 +8530,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7783 "pikchr.go"
+//line 7787 "pikchr.go"
