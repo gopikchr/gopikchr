@@ -131,8 +131,9 @@ import (
 
 // Version information
 const (
-	ReleaseVersion = "1.0"
-	ManifestDate   = "2025-03-04"  // Date of this port
+	ReleaseVersion   = "1.0"
+	ManifestDate     = "2025-03-04 17:32:19"  // Upstream commit date
+	ManifestISODate  = "20250304"             // ISO date format (YYYYMMDD)
 )
 
 // Numeric value
@@ -4442,7 +4443,8 @@ func (p *Pik) pik_render(pList PList) {
       p.pik_append("\"")
     }
     p.pik_append_dis(" viewBox=\"0 0 ",w,"")
-    p.pik_append_dis(" ",h,"\">\n")
+    p.pik_append_dis(" ",h,"\"")
+    p.pik_append(" data-pikchr-date=\"" + ManifestISODate + "\">\n")
     p.pik_elist_render(pList)
     p.pik_append("</svg>\n")
   }else{

@@ -2,6 +2,21 @@
 
 ## Changes
 
+### commit b5fd83b519ea5a56ad274621222cf1a3c2fda9eb
+
+    Include the check-in date as a data-* field on the &lt;svg&gt; element.
+
+    FossilOrigin-Name: 5c738ded0e10e6102d7ce0e6a5db9e6fb3cdc484442e7d6d0eba65b85b9c2740
+
+ pikchr.c | 5 +++--
+ pikchr.y | 3 ++-
+
+* Added ManifestISODate constant to internal/pikchr.y
+* Updated SVG output to include data-pikchr-date attribute
+* Updated c/VERSION.h with MANIFEST_ISODATE definition
+* Tests pass: C and Go produce identical output
+* Output includes: data-pikchr-date="20250304"
+
 ### commit 5413136dfa096c393aaf2bc7d6fc4b6ef7b2fce1
 
     Add the pikchr_version() interface which returns a string constant that
