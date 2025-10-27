@@ -2,6 +2,29 @@
 
 ## Changes
 
+### commit 5413136dfa096c393aaf2bc7d6fc4b6ef7b2fce1
+
+    Add the pikchr_version() interface which returns a string constant that
+    describe the release version number and the date/time of the check-in.
+
+    FossilOrigin-Name: 7ba88e2dd73c92ad933bfd0dbe098b9bf795fa76b3efa2edd9bdd1a684ab84c7
+
+ Makefile     |   6 +-
+ Makefile.msc |   6 +-
+ VERSION      |   1 +
+ mkversion.c  | 193 +++++++++++++++++++++++++
+ pikchr.c     | 470 +++++++++++++++++++++++++++++++++--------------------------
+ pikchr.h     |   4 +
+ pikchr.h.in  |   4 +
+ pikchr.y     |  12 ++
+
+* Added version constants (ReleaseVersion, ManifestDate) to internal/pikchr.y
+* Added PikChrVersion() function to internal package
+* Added Version() exported function to gopikchr package
+* Added --version/-v flags to cmd/gopikchr
+* Created c/VERSION.h for C build compatibility
+* Tests pass: C and Go produce identical output
+
 ### commit fb45ee9990872c03ea7fb24fec54196e7bbd4bf9
 
     Fix a bug (reported by [forumpost/f9f5d90f33|forum post f9f5d90f33]) in

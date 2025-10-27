@@ -1,0 +1,2 @@
+#define RELEASE_VERSION "1.0"
+#define MANIFEST_DATE "2025-03-04"

@@ -450,6 +450,31 @@ Commit only touches pikchr.c, not pikchr.y
   - Check if this needs to be reflected in pikchr.y (port)
   - **When in doubt, ask the user**
 
+**Example 5: Version changes**
+```diff
++ const char *pikchr_version(void){
++   return RELEASE_VERSION " " MANIFEST_DATE;
++ }
+```
+
+**Analysis:**
+- **Problem**: Adding version information
+- **Applies to Go?**: Yes - public API should be consistent
+- **Action**:
+  - **CRITICAL**: Keep version info synced with upstream!
+  - Check `VERSION` file in upstream repo for version number
+  - Use upstream commit date for manifest date (format: "YYYY-MM-DD HH:MM:SS")
+  - Update `ReleaseVersion` and `ManifestDate` constants in `internal/pikchr.y`
+  - Create/update `c/VERSION.h` with matching values for C builds
+  - Port the function using Go patterns
+
+**Version Sync Checklist:**
+1. Get version from upstream: `git show <commit>:VERSION`
+2. Get commit date: `git show --format="%ci" <commit> | head -1`
+3. Update `internal/pikchr.y` constants
+4. Update `c/VERSION.h` (format: `#define RELEASE_VERSION "1.0"`)
+5. Regenerate and test
+
 ---
 
 **⚠️ IMPORTANT: When in Doubt, Discuss with the User**
@@ -1071,4 +1096,4 @@ gh issue view <number>  # Should show CLOSED
 ---
 
 **Last Updated**: 2025-10-27
-**Version**: 1.1
+**Version**: 1.2

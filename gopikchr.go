@@ -58,3 +58,8 @@ func WithDarkMode() Option {
 		o.mFlag |= 2
 	}
 }
+
+// Version returns the version string for the pikchr library.
+func Version() string {
+	return internal.PikChrVersion()
+}

@@ -19,9 +19,12 @@ func main() {
 	var bSvgOnly bool
 	var bDontStop bool
 	var bDarkMode bool
+	var bVersion bool
 	flag.BoolVar(&bSvgOnly, "svg-only", false, "Emit raw SVG without the HTML wrapper")
 	flag.BoolVar(&bDontStop, "dont-stop", false, "Process all files even if earlier files have errors")
 	flag.BoolVar(&bDarkMode, "dark-mode", false, "Generate \"dark mode\" output")
+	flag.BoolVar(&bVersion, "version", false, "Print version and exit")
+	flag.BoolVar(&bVersion, "v", false, "Print version and exit (short form)")
 
 	options := []gopikchr.Option{gopikchr.WithSVGClass("pikchr")}
 
@@ -52,6 +55,10 @@ func main() {
 `
 
 	flag.Parse()
+	if bVersion {
+		fmt.Printf("pikchr %s\n", gopikchr.Version())
+		return
+	}
 	if len(flag.Args()) < 1 {
 		usage(os.Args[0])
 	}

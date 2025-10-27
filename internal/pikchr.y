@@ -129,6 +129,12 @@ import (
 	"strings"
 )
 
+// Version information
+const (
+	ReleaseVersion = "1.0"
+	ManifestDate   = "2025-03-04"  // Date of this port
+)
+
 // Numeric value
 type PNum = float64
 
@@ -5137,6 +5143,13 @@ func (p *Pik) pik_tokenize(pIn *PToken, pParser *yyParser, aParam []PToken) {
 ** The returned string is contained in memory obtained from malloc()
 ** and should be released by the caller.
 */
+
+/*
+** Return the version name.
+*/
+func PikChrVersion() string {
+  return ReleaseVersion + " " + ManifestDate
+}
 func Pikchr(
   zString string,     /* Input PIKCHR source text.  zero-terminated */
   zClass string,    /* Add class="%s" to <svg> markup */
