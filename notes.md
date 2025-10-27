@@ -2,6 +2,27 @@
 
 ## Changes
 
+### commit 9c5ced3599ce4f99b113b87a9be6d00ac1b95cc0
+
+    The magic "pikchr_date" token behaves like a string which expands to the
+    ISO date of the check-in.  Useful for debugging and to determine exactly
+    which pikchr version is running.
+
+    FossilOrigin-Name: 96d37690a60d8a7d9b79b1f22591ba8a02704af922b8b2a38551489dad8d9963
+
+ pikchr.c | 2412 +++++++++++++++++++++++++++++++-------------------------------
+ pikchr.y |   13 +-
+
+* Renamed "pikchr_isodate" keyword to "pikchr_date" (T_PIKCHRISODATE → T_ISODATE)
+* Removed grammar rule `pritem ::= PIKCHRISODATE` - now handled in tokenizer
+* Added `%token ISODATE` declaration
+* Token conversion: T_ISODATE is converted to T_STRING with quoted date value in tokenizer
+* Updated ManifestISODate constant to "20250305"
+* Updated c/VERSION.h with new date
+* Updated golemon lemonc to support `%include <file>` syntax (copied from pikchr lemon.c)
+* Tests pass: C and Go produce identical output
+* Example: "print pikchr_date" outputs "20250305"
+
 ### commit 95576ac6b08b913814489da50e9552c4c4a714df
 
     Add a change log.  Already has a 1.1 entry even though we are not there

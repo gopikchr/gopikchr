@@ -132,8 +132,8 @@ import (
 // Version information
 const (
 	ReleaseVersion   = "1.0"
-	ManifestDate     = "2025-03-04 17:32:19"  // Upstream commit date
-	ManifestISODate  = "20250304"             // ISO date format (YYYYMMDD)
+	ManifestDate     = "2025-03-05 00:29:51"  // Upstream commit date
+	ManifestISODate  = "20250305"             // ISO date format (YYYYMMDD)
 )
 
 // Numeric value
@@ -542,8 +542,9 @@ pritem ::= COLOR(X).       {p.pik_append_num("",p.pik_value(X.String(),nil))}
 pritem ::= THICKNESS(X).   {p.pik_append_num("",p.pik_value(X.String(),nil))}
 pritem ::= rvalue(X).      {p.pik_append_num("",X)}
 pritem ::= STRING(S).      {p.pik_append_text(string(S.z[1:S.n-1]),0)}
-pritem ::= PIKCHRISODATE.  {p.pik_append_text(ManifestISODate,0)}
 prsep  ::= COMMA.          {p.pik_append(" ")}
+
+%token ISODATE.
 
 unnamed_statement(A) ::= basetype(X) attribute_list.
                           {A = X; p.pik_after_adding_attributes(A)}
@@ -4530,7 +4531,7 @@ var pik_keywords = []PikWord{
   { "north",      5,   T_EDGEPT,    0,         CP_N     },
   { "nw",         2,   T_EDGEPT,    0,         CP_NW    },
   { "of",         2,   T_OF,        0,         0        },
-  { "pikchr_isodate",14,T_PIKCHRISODATE,0,     0,       },
+  { "pikchr_date",11,  T_ISODATE,   0,         0,       },
   { "previous",   8,   T_LAST,      0,         0,       },
   { "print",      5,   T_PRINT,     0,         0        },
   { "rad",        3,   T_RADIUS,    0,         0        },
@@ -5126,6 +5127,11 @@ func (p *Pik) pik_tokenize(pIn *PToken, pParser *yyParser, aParam []PToken) {
     if p.nToken++; p.nToken > PIKCHR_TOKEN_LIMIT {
       p.pik_error(&token, "script is too complex")
       break;
+    }
+    if token.eType==T_ISODATE {
+      token.z = []byte("\"" + ManifestISODate + "\"")
+      token.n = len(ManifestISODate)+2
+      token.eType = T_STRING
     }
     pParser.pik_parser(token.eType, token)
   }

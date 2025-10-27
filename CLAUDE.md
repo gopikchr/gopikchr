@@ -90,6 +90,17 @@ For detailed conversion patterns, see these comprehensive guides:
 
    The golemon repository with built binaries is required.
 
+   **IMPORTANT**: The lemonc binary is built from `~/gh/p_gopikchr/golemon/intermediate/lemon.c`.
+   This lemon.c file is periodically updated from `~/gh/p_gopikchr/pikchr/lemon.c` to get
+   the latest enhancements. If you encounter lemon-related errors (e.g., `%include <file>`
+   not supported), you may need to:
+
+   ```bash
+   cp ~/gh/p_gopikchr/pikchr/lemon.c ~/gh/p_gopikchr/golemon/intermediate/lemon.c
+   cd ~/gh/p_gopikchr/golemon
+   ./build.sh
+   ```
+
 4. **Build Tools**:
    - Go 1.x or later
    - GCC (for building C version)
@@ -197,12 +208,36 @@ For each open issue, determine if the commit is:
 - **AFTER** the last ported commit → Needs porting
 - **C-specific or docs-only** → Not applicable, close the issue
 
+**CRITICAL: Use git log --reverse to verify chronological order!**
+
+Issue numbers do NOT reflect chronological order. A rename from A→B might have:
+- Issue #100: "Add feature A"
+- Issue #96: "Rename A to B" (created later but commits happened in this order)
+
+To check chronological order:
+
+```bash
+cd ~/gh/p_gopikchr/pikchr
+# Find where commits appear chronologically
+git log --oneline --reverse --all | grep -n "<issue-commit-sha>\|<last-ported-commit-sha>"
+```
+
+Lower line number = earlier commit. The commit that appears FIRST is the earlier one.
+
 **Example verification:**
 
 ```bash
 # Check what the issue commit changed
 cd ~/gh/p_gopikchr/pikchr
 git show --stat <commit-sha>
+
+# Check chronological order vs last ported commit
+git log --oneline --reverse --all | grep -n "<issue-sha>\|<last-ported-sha>"
+
+# If issue commit line number is LESS than last ported commit:
+#   → Check if feature exists in internal/pikchr.y
+#   → If yes, close as already incorporated
+#   → If no, it may have been renamed/refactored - investigate
 
 # If it only changed docs or pikchr.c (not pikchr.y), check if relevant
 # If it changed pikchr.y, check what features were added/changed
@@ -529,6 +564,33 @@ func (p *Pik) func(pObj *PObj) {
   p.pik_append("text")
 }
 ```
+
+#### Step 6.5: Update version information (if needed)
+
+If the upstream commit changes version information or dates, use the `update_version.py` script:
+
+```bash
+./update_version.py <commit-sha>
+```
+
+**What this does:**
+- Extracts the commit date from the upstream pikchr repository
+- Updates `c/VERSION.h` with the correct date and version
+- Updates version constants in `internal/pikchr.y`
+
+**Example:**
+```bash
+./update_version.py 9c5ced3599
+```
+
+This ensures that version strings and manifest dates stay synchronized with the upstream commit.
+
+**When to use it:**
+- When porting commits that change version numbers
+- When porting commits that reference dates (like `pikchr_date` or `pikchr_version()`)
+- As a final check before committing to ensure dates are accurate
+
+**IMPORTANT**: Always run this script BEFORE regenerating pikchr.go, so the generated file includes the updated constants.
 
 #### Step 7: Regenerate internal/pikchr.go using golemon
 
