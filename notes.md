@@ -2,6 +2,23 @@
 
 ## Changes
 
+### commit fb45ee9990872c03ea7fb24fec54196e7bbd4bf9
+
+    Fix a bug (reported by [forumpost/f9f5d90f33|forum post f9f5d90f33]) in
+    which the "with EDGE at POSITION" layout causes the object to be "fit"
+    if POSITION refers to a "text" object.
+
+    FossilOrigin-Name: d34295b192c40f935113cb764f9f6c39b124d845952aac82fdff67915f7d17c4
+
+ pikchr.c            | 19 +++++++++----------
+ pikchr.y            | 17 ++++++++---------
+ tests/test81.pikchr |  5 +++++
+
+* Added pObj parameter to pik_size_to_fit() function signature
+* Updated all call sites (5 total) to pass pObj explicitly or nil
+* Copied test81.pikchr test case
+* Tests pass: C and Go produce identical output
+
 ### commit b3e5f5a460815634be1eaf87eaaa80607126b8a9
 
     Add the narrow.pikchr test case.  This should have been part of

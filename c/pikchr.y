@@ -126,6 +126,18 @@
 # define M_PI 3.1415926535897932385
 #endif
 
+/*
+** Typesafe version of ctype.h macros.  Cygwin requires this, I'm told.
+*/
+#define IsUpper(X)  isupper((unsigned char)(X))
+#define IsLower(X)  islower((unsigned char)(X))
+#define ToLower(X)  tolower((unsigned char)(X))
+#define IsDigit(X)  isdigit((unsigned char)(X))
+#define IsXDigit(X) isxdigit((unsigned char)(X))
+#define IsSpace(X)  isspace((unsigned char)(X))
+#define IsAlnum(X)  isalnum((unsigned char)(X))
+
+
 /* Limit the number of tokens in a single script to avoid run-away
 ** macro expansion attacks.  See forum post
 **    https://pikchr.org/home/forumpost/ef8684c6955a411a
@@ -474,7 +486,7 @@ static void pik_bbox_add_xy(PBox*,PNum,PNum);
 static void pik_bbox_addellipse(PBox*,PNum x,PNum y,PNum rx,PNum ry);
 static void pik_add_txt(Pik*,PToken*,int);
 static int pik_text_length(const PToken *pToken, const int isMonospace);
-static void pik_size_to_fit(Pik*,PToken*,int);
+static void pik_size_to_fit(Pik*,PObj*,PToken*,int);
 static int pik_text_position(int,PToken*);
 static PNum pik_property_of(PObj*,PToken*);
 static PNum pik_func(Pik*,PToken*,PNum,PNum);
@@ -645,7 +657,7 @@ attribute ::= WITH withclause.
 attribute ::= SAME(E).                          {pik_same(p,0,&E);}
 attribute ::= SAME(E) AS object(X).             {pik_same(p,X,&E);}
 attribute ::= STRING(T) textposition(P).        {pik_add_txt(p,&T,P);}
-attribute ::= FIT(E).                           {pik_size_to_fit(p,&E,3); }
+attribute ::= FIT(E).                           {pik_size_to_fit(p,0,&E,3); }
 attribute ::= BEHIND object(X).                 {pik_behind(p,X);}
 
 go ::= GO.
@@ -1709,7 +1721,7 @@ static PPoint textOffset(Pik *p, PObj *pObj, int cp){
   ** statements so that the bounding box tightly encloses the text,
   ** then get boxOffset() to do the offset computation.
   */
-  pik_size_to_fit(p, &pObj->errTok,3);
+  pik_size_to_fit(p, pObj, &pObj->errTok,3);
   return boxOffset(p, pObj, cp);
 }
 static void textRender(Pik *p, PObj *pObj){
@@ -3718,12 +3730,11 @@ static int pik_text_length(const PToken *pToken, const int isMonospace){
 **    2:   Fit vertically only
 **    3:   Fit both ways
 */
-static void pik_size_to_fit(Pik *p, PToken *pFit, int eWhich){
-  PObj *pObj;
+static void pik_size_to_fit(Pik *p, PObj *pObj, PToken *pFit, int eWhich){
   PNum w, h;
   PBox bbox;
   if( p->nErr ) return;
-  pObj = p->cur;
+  if( pObj==0 ) pObj = p->cur;
 
   if( pObj->nTxt==0 ){
     pik_error(0, pFit, "no text to fit to");
@@ -3866,9 +3877,9 @@ static PNum pik_lookup_color(Pik *p, PToken *pId){
     zClr = aColor[mid].zName;
     for(i=0; i<pId->n; i++){
       c1 = zClr[i]&0x7f;
-      if( isupper(c1) ) c1 = tolower(c1);
+      if( IsUpper(c1) ) c1 = ToLower(c1);
       c2 = pId->z[i]&0x7f;
-      if( isupper(c2) ) c2 = tolower(c2);
+      if( IsUpper(c2) ) c2 = ToLower(c2);
       c = c2 - c1;
       if( c ) break;
     }
@@ -4267,16 +4278,16 @@ static void pik_after_adding_attributes(Pik *p, PObj *pObj){
       if( pObj->nTxt==0 ){
         pObj->h = 0.0;
       }else if( pObj->w<=0.0 ){
-        pik_size_to_fit(p, &pObj->errTok, 3);
+        pik_size_to_fit(p, pObj, &pObj->errTok, 3);
       }else{
-        pik_size_to_fit(p, &pObj->errTok, 2);
+        pik_size_to_fit(p, pObj, &pObj->errTok, 2);
       }
     }
     if( pObj->w<=0.0 ){
       if( pObj->nTxt==0 ){
         pObj->w = 0.0;
       }else{
-        pik_size_to_fit(p, &pObj->errTok, 1);
+        pik_size_to_fit(p, pObj, &pObj->errTok, 1);
       }
     }
     ofst = pik_elem_offset(p, pObj, pObj->eWith);
@@ -4976,7 +4987,7 @@ static int pik_token_length(PToken *pToken, int bAllowCodeBlock){
       c = z[0];
       if( c=='.' ){
         unsigned char c1 = z[1];
-        if( islower(c1) ){
+        if( IsLower(c1) ){
           const PikWord *pFound;
           for(i=2; (c = z[i])>='a' && c<='z'; i++){}
           pFound = pik_find_word((const char*)z+1, i-1,
@@ -4996,11 +5007,11 @@ static int pik_token_length(PToken *pToken, int bAllowCodeBlock){
             pToken->eType = T_DOT_L;
           }
           return 1;
-        }else if( isdigit(c1) ){
+        }else if( IsDigit(c1) ){
           i = 0;
           /* no-op.  Fall through to number handling */
-        }else if( isupper(c1) ){
-          for(i=2; (c = z[i])!=0 && (isalnum(c) || c=='_'); i++){}
+        }else if( IsUpper(c1) ){
+          for(i=2; (c = z[i])!=0 && (IsAlnum(c) || c=='_'); i++){}
           pToken->eType = T_DOT_U;
           return 1;
         }else{
@@ -5015,7 +5026,7 @@ static int pik_token_length(PToken *pToken, int bAllowCodeBlock){
           nDigit = 1;
           for(i=1; (c = z[i])>='0' && c<='9'; i++){ nDigit++; }
           if( i==1 && (c=='x' || c=='X') ){
-            for(i=2; (c = z[i])!=0 && isxdigit(c); i++){}
+            for(i=2; (c = z[i])!=0 && IsXDigit(c); i++){}
             pToken->eType = T_NUMBER;
             return i;
           }
@@ -5071,9 +5082,9 @@ static int pik_token_length(PToken *pToken, int bAllowCodeBlock){
         }
         pToken->eType = T_NUMBER;
         return i;
-      }else if( islower(c) ){
+      }else if( IsLower(c) ){
         const PikWord *pFound;
-        for(i=1; (c =  z[i])!=0 && (isalnum(c) || c=='_'); i++){}
+        for(i=1; (c =  z[i])!=0 && (IsAlnum(c) || c=='_'); i++){}
         pFound = pik_find_word((const char*)z, i,
                                pik_keywords, count(pik_keywords));
         if( pFound ){
@@ -5090,15 +5101,15 @@ static int pik_token_length(PToken *pToken, int bAllowCodeBlock){
         }
         return i;
       }else if( c>='A' && c<='Z' ){
-        for(i=1; (c =  z[i])!=0 && (isalnum(c) || c=='_'); i++){}
+        for(i=1; (c =  z[i])!=0 && (IsAlnum(c) || c=='_'); i++){}
         pToken->eType = T_PLACENAME;
         return i;
-      }else if( c=='$' && z[1]>='1' && z[1]<='9' && !isdigit(z[2]) ){
+      }else if( c=='$' && z[1]>='1' && z[1]<='9' && !IsDigit(z[2]) ){
         pToken->eType = T_PARAMETER;
         pToken->eCode = z[1] - '1';
         return 2;
       }else if( c=='_' || c=='$' || c=='@' ){
-        for(i=1; (c =  z[i])!=0 && (isalnum(c) || c=='_'); i++){}
+        for(i=1; (c =  z[i])!=0 && (IsAlnum(c) || c=='_'); i++){}
         pToken->eType = T_ID;
         return i;
       }else{
@@ -5185,8 +5196,8 @@ static unsigned int pik_parse_macro_args(
     ** corresponding argument from the outer context */
     for(j=0; j<=nArg; j++){
       PToken *t = &args[j];
-      while( t->n>0 && isspace(t->z[0]) ){ t->n--; t->z++; }
-      while( t->n>0 && isspace(t->z[t->n-1]) ){ t->n--; }
+      while( t->n>0 && IsSpace(t->z[0]) ){ t->n--; t->z++; }
+      while( t->n>0 && IsSpace(t->z[t->n-1]) ){ t->n--; }
       if( t->n==2 && t->z[0]=='$' && t->z[1]>='1' && t->z[1]<='9' ){
         if( pOuter ) *t = pOuter[t->z[1]-'1'];
         else t->n = 0;
@@ -5267,7 +5278,7 @@ void pik_tokenize(Pik *p, PToken *pIn, yyParser *pParser, PToken *aParam){
 #if 0
       printf("******** Token %s (%d): \"%.*s\" **************\n",
              yyTokenName[token.eType], token.eType,
-             (int)(isspace(token.z[0]) ? 0 : sz), token.z);
+             (int)(IsSpace(token.z[0]) ? 0 : sz), token.z);
 #endif
       token.n = (unsigned short)(sz & 0xffff);
       if( p->nToken++ > PIKCHR_TOKEN_LIMIT ){
