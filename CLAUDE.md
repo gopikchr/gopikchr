@@ -165,6 +165,81 @@ gh issue list --label upstream-changes --state open
 103  OPEN  Port changes from upstream: Improved boundry box...        upstream-changes
 ```
 
+### IMPORTANT: Verify Issues Before Processing
+
+**Not all open issues require porting!** Before spending time on an issue, verify whether it needs action:
+
+#### Step 1: Check if upstream repo is up to date
+
+```bash
+cd ~/gh/p_gopikchr/pikchr
+git checkout master  # or main/trunk depending on the repo
+git pull
+```
+
+The pikchr repo may have new commits that weren't present when you started.
+
+#### Step 2: Find the last ported commit
+
+```bash
+cd ~/gh/p_gopikchr/gopikchr
+git log --oneline --grep="track upstream commit" | head -1
+```
+
+Example output: `c958377 track upstream commit 0624fc4904: use font-size of "initial"`
+
+This tells you that `0624fc4904` (July 24, 2024) was the last commit ported.
+
+#### Step 3: Check if issue commit is already incorporated
+
+For each open issue, determine if the commit is:
+- **BEFORE** the last ported commit → Already incorporated, close the issue
+- **AFTER** the last ported commit → Needs porting
+- **C-specific or docs-only** → Not applicable, close the issue
+
+**Example verification:**
+
+```bash
+# Check what the issue commit changed
+cd ~/gh/p_gopikchr/pikchr
+git show --stat <commit-sha>
+
+# If it only changed docs or pikchr.c (not pikchr.y), check if relevant
+# If it changed pikchr.y, check what features were added/changed
+```
+
+#### Common reasons to close without porting:
+
+1. **Already incorporated**: Commit is before the last ported commit
+   - Verify by checking if the feature exists in `internal/pikchr.y`
+   - Example: Monospace support - check if `TP_MONO` exists in both files
+
+2. **Documentation only**: Commit only changes `doc/*` or markdown files
+   - Example: Adding contributors agreement (`doc/copyright-release.html`)
+
+3. **C-specific portability**: Changes only affect C implementation
+   - Example: Cygwin ctype.h fixes - Go doesn't use ctype.h
+   - Example: Build system changes, compiler-specific workarounds
+
+4. **Generated file only**: Changes only affect `pikchr.c` (generated from `pikchr.y`)
+   - Check if the change should have been in `pikchr.y` first
+
+#### Example Verification Process:
+
+```bash
+# For issue about "monospace" support:
+cd ~/gh/p_gopikchr/pikchr
+git checkout bbf832db99  # The issue's commit
+grep -c "TP_MONO" pikchr.y   # Returns 5
+
+cd ~/gh/p_gopikchr/gopikchr
+grep -c "TP_MONO" internal/pikchr.y   # Returns 5
+
+# Same count = feature is incorporated → close issue
+```
+
+**CRITICAL**: Always run verification from the `~/gh/p_gopikchr/gopikchr` directory when using `gh issue` commands. The working directory can get lost when working with multiple repos.
+
 ### Issue Format
 
 Each issue contains:
@@ -795,24 +870,56 @@ When you make a judgment call (after user confirmation), add a comment:
 
 ## For Future Claude Sessions
 
+### Critical Reminders for Automated Processing
+
+#### Working Directory Management
+
+**CRITICAL**: When working with multiple sibling directories, the shell working directory does NOT automatically revert to the main repo. Always explicitly `cd` to the correct repo before running commands:
+
+```bash
+# ❌ WRONG - assumes you're in the right directory
+gh issue list --label upstream-changes --state open
+
+# ✅ CORRECT - explicit directory change
+cd ~/gh/p_gopikchr/gopikchr && gh issue list --label upstream-changes --state open
+```
+
+**Best practice**: Start every command that needs to be in a specific repo with `cd <repo-path> &&`.
+
+#### Verification Before Porting
+
+**ALWAYS verify an issue needs porting before starting work:**
+
+1. Update the upstream pikchr repo: `cd ~/gh/p_gopikchr/pikchr && git pull`
+2. Find the last ported commit in gopikchr
+3. Check if the issue commit is before/after the last ported commit
+4. For older commits, verify if features are already incorporated
+5. For all commits, check if changes apply to Go
+
+**Time saved**: Verifying takes 1-2 minutes; porting takes 15-60 minutes. Always verify first!
+
 ### Automated Workflow
 
 When asked to "port upstream changes" or "process pending issues", follow this workflow:
 
+#### 0. **FIRST: Verify the issue** (see "Verify Issues Before Processing" section)
+
+This step is critical and will save significant time by avoiding unnecessary work.
+
 #### 1. **List open issues**
 ```bash
-gh issue list --label upstream-changes --state open
+cd ~/gh/p_gopikchr/gopikchr && gh issue list --label upstream-changes --state open
 ```
 
 #### 2. **Select the oldest issue**
 ```bash
 # Get the issue with the smallest number
-gh issue list --label upstream-changes --state open | tail -1
+cd ~/gh/p_gopikchr/gopikchr && gh issue list --label upstream-changes --state open | tail -1
 ```
 
 #### 3. **Extract information**
 ```bash
-gh issue view <issue-number>
+cd ~/gh/p_gopikchr/gopikchr && gh issue view <issue-number>
 ```
 Extract:
 - Commit SHA (full)
@@ -963,5 +1070,5 @@ gh issue view <number>  # Should show CLOSED
 
 ---
 
-**Last Updated**: 2025-10-26
-**Version**: 1.0
+**Last Updated**: 2025-10-27
+**Version**: 1.1
