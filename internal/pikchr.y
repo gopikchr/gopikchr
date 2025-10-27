@@ -541,8 +541,9 @@ pritem ::= FILL(X).        {p.pik_append_num("",p.pik_value(X.String(),nil))}
 pritem ::= COLOR(X).       {p.pik_append_num("",p.pik_value(X.String(),nil))}
 pritem ::= THICKNESS(X).   {p.pik_append_num("",p.pik_value(X.String(),nil))}
 pritem ::= rvalue(X).      {p.pik_append_num("",X)}
-pritem ::= STRING(S). {p.pik_append_text(string(S.z[1:S.n-1]),0)}
-prsep  ::= COMMA. {p.pik_append(" ")}
+pritem ::= STRING(S).      {p.pik_append_text(string(S.z[1:S.n-1]),0)}
+pritem ::= PIKCHRISODATE.  {p.pik_append_text(ManifestISODate,0)}
+prsep  ::= COMMA.          {p.pik_append(" ")}
 
 unnamed_statement(A) ::= basetype(X) attribute_list.
                           {A = X; p.pik_after_adding_attributes(A)}
@@ -4529,6 +4530,7 @@ var pik_keywords = []PikWord{
   { "north",      5,   T_EDGEPT,    0,         CP_N     },
   { "nw",         2,   T_EDGEPT,    0,         CP_NW    },
   { "of",         2,   T_OF,        0,         0        },
+  { "pikchr_isodate",14,T_PIKCHRISODATE,0,     0,       },
   { "previous",   8,   T_LAST,      0,         0,       },
   { "print",      5,   T_PRINT,     0,         0        },
   { "rad",        3,   T_RADIUS,    0,         0        },

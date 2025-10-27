@@ -2,6 +2,25 @@
 
 ## Changes
 
+### commit 95576ac6b08b913814489da50e9552c4c4a714df
+
+    Add a change log.  Already has a 1.1 entry even though we are not there
+    yet.  Add the "pikchr_isodate" keyword which can be an argument to "print".
+
+    FossilOrigin-Name: 918b2b57f20b9836d88ce1dd6fd86d231ec9193151215583b8728d72c3caa9e5
+
+ doc/changelog.md |   19 +
+ homepage.md      |    1 +
+ pikchr.c         | 2848 +++++++++++++++++++++++++++------------------------
+ pikchr.y         |    8 +-
+
+* Added T_PIKCHRISODATE token
+* Added "pikchr_isodate" keyword to keyword list
+* Added grammar rule: pritem ::= PIKCHRISODATE
+* pikchr_isodate outputs ManifestISODate constant in print statements
+* Tests pass: C and Go produce identical output
+* Example: "print pikchr_isodate" outputs "20250304"
+
 ### commit b5fd83b519ea5a56ad274621222cf1a3c2fda9eb
 
     Include the check-in date as a data-* field on the &lt;svg&gt; element.
