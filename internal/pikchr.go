@@ -133,7 +133,7 @@ import (
 // Version information
 const (
 	ReleaseVersion  = "1.0"
-	ManifestDate    = "2025-03-05 00:29:51" // Upstream commit date
+	ManifestDate    = "2025-03-05 10:44:08" // Upstream commit date
 	ManifestISODate = "20250305"            // ISO date format (YYYYMMDD)
 )
 
@@ -8528,7 +8528,7 @@ func (p *Pik) pik_tokenize(pIn *PToken, pParser *yyParser, aParam []PToken) {
 ** Return the version name.
  */
 func PikChrVersion() string {
-	return ReleaseVersion + " " + ManifestDate
+	return ReleaseVersion + " " + ManifestISODate
 }
 func Pikchr(
 	zString string, /* Input PIKCHR source text.  zero-terminated */

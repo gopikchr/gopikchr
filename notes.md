@@ -2,6 +2,21 @@
 
 ## Changes
 
+### commit 41c1d846af49e765772cb24238d25a2ae75d7a59
+
+    Change the output of pikchr_version() to omit all punctuation from the
+    date, so that the date is just a 14-digit integer.
+
+    FossilOrigin-Name: bb99465bd126646c031c7426f05e8b85c6f170a4af76d603b25d3aaeb749de31
+
+ pikchr.y | 2 +-
+
+* Changed PikChrVersion() to return ManifestISODate instead of ManifestDate
+* Version string format changed from "1.0 2025-03-05 10:44:08" to "1.0 20250305"
+* Updated ManifestDate and ManifestISODate constants to "2025-03-05 10:44:08" and "20250305"
+* Tests pass: C and Go produce identical output
+* Example: PikChrVersion() now outputs "1.0 20250305" (14-digit integer date)
+
 ### commit 9c5ced3599ce4f99b113b87a9be6d00ac1b95cc0
 
     The magic "pikchr_date" token behaves like a string which expands to the
