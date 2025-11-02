@@ -2,6 +2,23 @@
 
 ## Changes
 
+### commit 0a2002f91603bd9c65f85a0577d1647f28778248
+
+    A more precise computation of the bounding box for an arc.
+
+    FossilOrigin-Name: 8a43b020141f772a0ac45291a7fd73041d2efba5e3665c6bd2f334ad9b2e9845
+
+ pikchr.y | 39 ++++++++++++++++++++++++++-------------
+
+* Simplified arcControlPoint() - removed rScale and rPct parameters (reverting previous change)
+* Completely rewrote arcCheck() with much more precise bounding box calculation:
+  - Samples 15 points along the Bezier curve (t from 0.0625 to 0.9375)
+  - Uses parametric Bezier equation: P(t) = (1-t)²·P₀ + 2t(1-t)·P₁ + t²·P₂
+  - For each sampled point, adds an ellipse to bbox accounting for stroke width
+* Updated arcRender() call to use simplified arcControlPoint()
+* Much more accurate arc bounding boxes than previous two-point sampling approach
+* Tests pass: C and Go produce identical output
+
 ### commit 35970d0b70fdaf351cc6822fef49f39e2c21da0a
 
     Improved boundry box estimation for arcs.  Response to

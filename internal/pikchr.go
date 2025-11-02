@@ -133,7 +133,7 @@ import (
 // Version information
 const (
 	ReleaseVersion  = "1.0"
-	ManifestDate    = "2025-03-19 12:41:21" // Upstream commit date
+	ManifestDate    = "2025-03-19 16:19:43" // Upstream commit date
 	ManifestISODate = "20250319"            // ISO date format (YYYYMMDD)
 )
 
@@ -3807,31 +3807,45 @@ func arcInit(p *Pik, pObj *PObj) {
 ** mean based on available documentation.  (2) Arcs are rarely used,
 ** and so do not seem that important.
  */
-func arcControlPoint(cw bool, f PPoint, t PPoint, rScale PNum, rPct PNum) PPoint {
+func arcControlPoint(cw bool, f PPoint, t PPoint) PPoint {
 	var m PPoint
 	var dx, dy PNum
-	m.x = rPct * (f.x + t.x)
-	m.y = rPct * (f.y + t.y)
+	m.x = 0.5 * (f.x + t.x)
+	m.y = 0.5 * (f.y + t.y)
 	dx = t.x - f.x
 	dy = t.y - f.y
 	if cw {
-		m.x -= 0.5 * rScale * dy
-		m.y += 0.5 * rScale * dx
+		m.x -= 0.5 * dy
+		m.y += 0.5 * dx
 	} else {
-		m.x += 0.5 * rScale * dy
-		m.y -= 0.5 * rScale * dx
+		m.x += 0.5 * dy
+		m.y -= 0.5 * dx
 	}
 	return m
 }
 func arcCheck(p *Pik, pObj *PObj) {
+	var f, m, t PPoint
+	var sw PNum
+	var i int
 	if p.nTPath > 2 {
 		p.pik_error(&pObj.errTok, "arc geometry error")
 		return
 	}
-	m := arcControlPoint(pObj.cw, p.aTPath[0], p.aTPath[1], 0.5, 0.25)
-	pik_bbox_add_xy(&pObj.bbox, m.x, m.y)
-	m = arcControlPoint(pObj.cw, p.aTPath[0], p.aTPath[1], 0.5, 0.75)
-	pik_bbox_add_xy(&pObj.bbox, m.x, m.y)
+	f = p.aTPath[0]
+	t = p.aTPath[1]
+	m = arcControlPoint(pObj.cw, f, t)
+	sw = pObj.sw
+	for i = 1; i < 16; i++ {
+		var t1, t2, a, b, c, x, y PNum
+		t1 = 0.0625 * PNum(i)
+		t2 = 1.0 - t1
+		a = t2 * t2
+		b = 2 * t1 * t2
+		c = t1 * t1
+		x = a*f.x + b*m.x + c*t.x
+		y = a*f.y + b*m.y + c*t.y
+		pik_bbox_addellipse(&pObj.bbox, x, y, sw, sw)
+	}
 }
 func arcRender(p *Pik, pObj *PObj) {
 	if pObj.nPath < 2 {
@@ -3842,7 +3856,7 @@ func arcRender(p *Pik, pObj *PObj) {
 	}
 	f := pObj.aPath[0]
 	t := pObj.aPath[1]
-	m := arcControlPoint(pObj.cw, f, t, 1.0, 0.5)
+	m := arcControlPoint(pObj.cw, f, t)
 	if pObj.larrow {
 		p.pik_draw_arrowhead(&m, &f, pObj)
 	}
@@ -8642,4 +8656,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7873 "pikchr.go"
+//line 7887 "pikchr.go"
