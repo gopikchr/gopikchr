@@ -133,8 +133,8 @@ import (
 // Version information
 const (
 	ReleaseVersion  = "1.0"
-	ManifestDate    = "2025-03-05 10:44:08" // Upstream commit date
-	ManifestISODate = "20250305"            // ISO date format (YYYYMMDD)
+	ManifestDate    = "2025-03-19 12:41:21" // Upstream commit date
+	ManifestISODate = "20250319"            // ISO date format (YYYYMMDD)
 )
 
 // Numeric value
@@ -3807,11 +3807,11 @@ func arcInit(p *Pik, pObj *PObj) {
 ** mean based on available documentation.  (2) Arcs are rarely used,
 ** and so do not seem that important.
  */
-func arcControlPoint(cw bool, f PPoint, t PPoint, rScale PNum) PPoint {
+func arcControlPoint(cw bool, f PPoint, t PPoint, rScale PNum, rPct PNum) PPoint {
 	var m PPoint
 	var dx, dy PNum
-	m.x = 0.5 * (f.x + t.x)
-	m.y = 0.5 * (f.y + t.y)
+	m.x = rPct * (f.x + t.x)
+	m.y = rPct * (f.y + t.y)
 	dx = t.x - f.x
 	dy = t.y - f.y
 	if cw {
@@ -3828,7 +3828,9 @@ func arcCheck(p *Pik, pObj *PObj) {
 		p.pik_error(&pObj.errTok, "arc geometry error")
 		return
 	}
-	m := arcControlPoint(pObj.cw, p.aTPath[0], p.aTPath[1], 0.5)
+	m := arcControlPoint(pObj.cw, p.aTPath[0], p.aTPath[1], 0.5, 0.25)
+	pik_bbox_add_xy(&pObj.bbox, m.x, m.y)
+	m = arcControlPoint(pObj.cw, p.aTPath[0], p.aTPath[1], 0.5, 0.75)
 	pik_bbox_add_xy(&pObj.bbox, m.x, m.y)
 }
 func arcRender(p *Pik, pObj *PObj) {
@@ -3840,7 +3842,7 @@ func arcRender(p *Pik, pObj *PObj) {
 	}
 	f := pObj.aPath[0]
 	t := pObj.aPath[1]
-	m := arcControlPoint(pObj.cw, f, t, 1.0)
+	m := arcControlPoint(pObj.cw, f, t, 1.0, 0.5)
 	if pObj.larrow {
 		p.pik_draw_arrowhead(&m, &f, pObj)
 	}
@@ -8640,4 +8642,4 @@ func bytesEq(a, b []byte) bool {
 	return true
 }
 
-//line 7871 "pikchr.go"
+//line 7873 "pikchr.go"

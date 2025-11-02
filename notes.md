@@ -2,6 +2,22 @@
 
 ## Changes
 
+### commit 35970d0b70fdaf351cc6822fef49f39e2c21da0a
+
+    Improved boundry box estimation for arcs.  Response to
+    [/forumpost/ed93cba38db85818|forum post ed93cba38d].
+
+    FossilOrigin-Name: 9b9b3133644ff804f8312bb839ad4eb43d1eb1869558f7a3a50b788b2c4a706a
+
+ pikchr.y | 12 +++++++-----
+
+* Added `rPct` parameter to arcControlPoint() function
+* Changed midpoint calculation from fixed 0.5 to use rPct parameter
+* In arcCheck(), now computes control points at 0.25 and 0.75 and adds both to bounding box
+* In arcRender(), updated call to pass 0.5 as rPct parameter
+* Improves bounding box estimation for arc objects
+* Tests pass: C and Go produce identical output
+
 ### commit 41c1d846af49e765772cb24238d25a2ae75d7a59
 
     Change the output of pikchr_version() to omit all punctuation from the
